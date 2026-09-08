@@ -11,9 +11,11 @@ EXCLUDED = {
     "vendor", "__pycache__", ".next", "coverage", ".cache", "logs",
     "Pods", "DerivedData", "_build", "deps",
 }
-TRAVERSED_HIDDEN = {".github", ".claude", ".circleci", ".buildkite"}
+TRAVERSED_HIDDEN = {".github", ".claude", ".agents", ".codex", ".circleci",
+                    ".buildkite"}
 NAMES = {
-    "AGENTS.md", "CLAUDE.md", "HANDOFF.md", "README.md", "CONTRIBUTING.md",
+    "AGENTS.md", "CLAUDE.md", "SKILL.md", "HANDOFF.md", "README.md",
+    "CONTRIBUTING.md",
     "ARCHITECTURE.md", "MVP_SPEC.md", "AGENT_GUIDE.md", "package.json",
     "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "pyproject.toml",
     "requirements.txt", "uv.lock", "go.mod", "go.sum", "go.work", "Gemfile",
@@ -39,6 +41,11 @@ NAMES = {
     "nx.json", "turbo.json", "lerna.json", "rush.json",
 }
 SUFFIXES = {".csproj", ".fsproj", ".vbproj", ".sln", ".cabal"}
+# Anything runnable living in a conventional script directory: the name of a
+# helper says nothing about its purpose, so match the location and the suffix.
+SCRIPT_DIRS = {"scripts", "bin"}
+SCRIPT_SUFFIXES = {".py", ".sh", ".bash", ".zsh", ".ps1", ".rb", ".pl",
+                   ".js", ".mjs", ".cjs", ".ts"}
 # CI directories, matched at any depth so a monorepo package keeps its own CI.
 CI_YAML_DIRS = ((".github", "workflows"), (".circleci",), (".buildkite",))
 HANDOFF_STEM = "handoff"
@@ -71,7 +78,10 @@ def inventory(root, max_entries=5000, max_results=200, max_depth=4,
             and (not name.startswith(".") or name in TRAVERSED_HIDDEN)
             and not (Path(directory) / name).is_symlink()
         )
-        if depth >= max_depth and dirs:
+        # A skill root's own subdirectories (scripts, tests, references) are part
+        # of one unit: descending one level past the cap keeps a skill whole
+        # instead of reporting its SKILL.md with none of what it ships.
+        if depth >= max_depth and dirs and "SKILL.md" not in files:
             limited.add("depth")
             dirs[:] = []
         for name in sorted(files):
@@ -93,8 +103,11 @@ def inventory(root, max_entries=5000, max_results=200, max_depth=4,
                             for index in range(len(parents) - len(group) + 1)))
                 or (path.suffix.lower() == ".md"
                     and HANDOFF_STEM in path.stem.lower())
-                or (relative.name in {"scripts", "bin"}
-                    and name.startswith(("check", "test", "lint", "verify")))
+                or (relative.name in SCRIPT_DIRS
+                    and (path.suffix in SCRIPT_SUFFIXES
+                         or (not path.suffix
+                             and name.startswith(("check", "test", "lint",
+                                                  "verify")))))
             )
             if matched:
                 if len(results) >= max_results:
@@ -112,10 +125,17 @@ def inventory(root, max_entries=5000, max_results=200, max_depth=4,
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", type=Path)
+    parser.add_argument(
+        "--max-depth", type=int, default=4,
+        help="how many directory levels below the root to walk (default: 4). "
+             "Raise it when the interesting files sit deeper and the output "
+             "reports a 'depth' limit.")
     args = parser.parse_args()
     if not args.root.is_dir():
         parser.error("root must be an existing directory")
-    print(json.dumps(inventory(args.root.resolve()), indent=2))
+    if args.max_depth < 1:
+        parser.error("--max-depth must be at least 1")
+    print(json.dumps(inventory(args.root.resolve(), max_depth=args.max_depth), indent=2))
 
 
 if __name__ == "__main__":

@@ -216,5 +216,77 @@ class HelperChecks(unittest.TestCase):
         self.assertEqual(real["verified"]["imports"], 1)
         self.assertGreaterEqual(real["verified"]["local_links"], 2)
 
+    def test_max_depth_flag_reaches_deeply_nested_manifests(self):
+        deep = "a/b/c/d/e/package.json"
+        self.write(deep, "Never execute or expose contents.\n")
+        command = [sys.executable, "-B", str(SCRIPTS / "inspect_repo.py"), str(self.root)]
+        shallow = json.loads(subprocess.run(command, capture_output=True,
+                                            text=True).stdout)
+        self.assertEqual(shallow["paths"], [])
+        self.assertIn("depth", shallow["limits_reached"])
+        deeper = json.loads(subprocess.run(command + ["--max-depth", "6"],
+                                           capture_output=True, text=True).stdout)
+        self.assertEqual(deeper["paths"], [deep])
+        self.assertNotIn("depth", deeper["limits_reached"])
+
+    def test_max_depth_flag_rejects_zero(self):
+        result = subprocess.run(
+            [sys.executable, "-B", str(SCRIPTS / "inspect_repo.py"),
+             str(self.root), "--max-depth", "0"],
+            capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("--max-depth", result.stderr)
+
+    def test_skill_files_are_recognized_at_any_location(self):
+        for name in ["SKILL.md", "skills/demo/SKILL.md",
+                     "plugins/p/skills/demo/SKILL.md",
+                     ".claude/skills/demo/SKILL.md",
+                     ".agents/skills/demo/SKILL.md",
+                     ".codex/skills/demo/SKILL.md"]:
+            self.write(name, "Agent instructions.\n")
+        command = [sys.executable, "-B", str(SCRIPTS / "inspect_repo.py"),
+                   str(self.root), "--max-depth", "6"]
+        paths = set(json.loads(subprocess.run(command, capture_output=True,
+                                              text=True).stdout)["paths"])
+        self.assertEqual(paths, {"SKILL.md", "skills/demo/SKILL.md",
+                                 "plugins/p/skills/demo/SKILL.md",
+                                 ".claude/skills/demo/SKILL.md",
+                                 ".agents/skills/demo/SKILL.md",
+                                 ".codex/skills/demo/SKILL.md"})
+
+    def test_script_directories_match_by_location_not_by_name(self):
+        for name in ["scripts/inspect_repo.py", "scripts/release.sh",
+                     "bin/build.ps1", "scripts/check", "scripts/notes.md",
+                     "src/helper.py"]:
+            self.write(name, "Never execute or expose contents.\n")
+        paths = set(inventory(self.root)["paths"])
+        self.assertEqual(paths, {"scripts/inspect_repo.py", "scripts/release.sh",
+                                 "bin/build.ps1", "scripts/check"})
+
+    def test_skill_recognition_does_not_reach_into_excluded_directories(self):
+        for name in ["node_modules/pkg/SKILL.md", "Pods/x/SKILL.md",
+                     "node_modules/pkg/scripts/run.py", "skills/real/SKILL.md"]:
+            self.write(name, "Never execute or expose contents.\n")
+        self.assertEqual(inventory(self.root)["paths"], ["skills/real/SKILL.md"])
+
+    def test_a_skill_root_at_the_depth_cap_keeps_its_own_subdirectories(self):
+        # The skill root sits exactly at the default cap; its scripts sit one
+        # level past it, which is where this repository's own helpers live.
+        self.write("plugins/p/skills/demo/SKILL.md", "Agent instructions.\n")
+        self.write("plugins/p/skills/demo/scripts/helper.py", "x\n")
+        self.write("plugins/p/skills/demo/tests/test_demo.py", "x\n")
+        self.write("plugins/p/other/nested/deep/buried.py", "x\n")
+        result = inventory(self.root)
+        self.assertIn("plugins/p/skills/demo/SKILL.md", result["paths"])
+        self.assertIn("plugins/p/skills/demo/scripts/helper.py", result["paths"])
+        self.assertNotIn("plugins/p/other/nested/deep/buried.py", result["paths"])
+
+    def test_the_depth_cap_still_applies_to_ordinary_directories(self):
+        self.write("a/b/c/d/e/package.json", "x\n")
+        result = inventory(self.root)
+        self.assertEqual(result["paths"], [])
+        self.assertIn("depth", result["limits_reached"])
+
+
 if __name__ == "__main__":
     unittest.main()
