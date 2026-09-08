@@ -1,0 +1,16 @@
+{
+  "name": "gmust-plugins",
+  "owner": {
+    "name": "Gmust",
+    "url": "https://github.com/Gmust"
+  },
+  "description": "Plugins for setting up agent-friendly repositories.",
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "name": "setup-agentic-workflow",
+      "source": "./plugins/setup-agentic-workflow",
+      "description": "Scoped agent instructions, a shared quality gate, handoff, and optional CI, for single-project repositories and monorepos."
+    }
+  ]
+}

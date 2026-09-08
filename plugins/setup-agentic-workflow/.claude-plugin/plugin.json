@@ -1,0 +1,21 @@
+{
+  "name": "setup-agentic-workflow",
+  "displayName": "Setup Agentic Workflow",
+  "version": "1.0.0",
+  "description": "Set up a repository so coding agents work safely in it: AGENTS.md and CLAUDE.md entry points, a code map, one shared check command, a handoff document, and optional CI, in single-project repositories and monorepos. Use when preparing a repo for Claude Code or Codex, when adding or standardizing AGENTS.md or CLAUDE.md, or when starting an agentic development workflow. Do not use for implementing product features.",
+  "author": {
+    "name": "Gmust",
+    "url": "https://github.com/Gmust"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "workflow",
+    "agents-md",
+    "codex",
+    "claude-code",
+    "monorepo"
+  ],
+  "repository": "https://github.com/Gmust/setup-agentic-workflow-plugin",
+  "homepage": "https://github.com/Gmust/setup-agentic-workflow-plugin#readme"
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Agentic Workflow"
+  short_description: "Create minimal, safe agent workflow files"
+  default_prompt: "Use $setup-agentic-workflow to set up a minimal agentic development workflow for this repository."
