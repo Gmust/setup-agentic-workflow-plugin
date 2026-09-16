@@ -3,7 +3,7 @@
 set -e
 H="$(cd "$(dirname "$0")" && pwd)"; T="${TMPDIR:-/tmp}/handoff-hooktest-$$"; S="t$$"
 export TMPDIR="${TMPDIR:-/tmp}"
-mkdir -p "$T/docs" && cd "$T" && git init -q && printf 'goal: t\nnext: x\n' > docs/HANDOFF.yaml && git add -A && git commit -qm i
+mkdir -p "$T/docs" && cd "$T" && git init -q && printf 'goal: t\nnext: x\n' > docs/HANDOFF.yaml && git add -A && git -c user.name=t -c user.email=t@t commit -qm i
 j() { printf '{"cwd":"%s","session_id":"%s"%s}' "$T" "$S" "$1"; }
 fail() { echo "FAIL: $1"; exit 1; }
 
