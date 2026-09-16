@@ -5,7 +5,7 @@ sid=$(printf '%s' "$input" | jq -r '.session_id // "default"')
 hf="${HANDOFF_FILE:-docs/HANDOFF.yaml}"
 marker="${TMPDIR:-/tmp}/handoff-session-$sid"
 counter="${TMPDIR:-/tmp}/handoff-counter-$sid"
-mtime() { stat -f '%m' "$1" 2>/dev/null || stat -c '%Y' "$1" 2>/dev/null; }
+mtime() { stat -c '%Y' "$1" 2>/dev/null || stat -f '%m' "$1" 2>/dev/null; }  # GNU first: BSD-style -f succeeds on GNU with fs info
 # git ground truth: recent commits + dirty tree, ~50 tokens; empty outside git
 git_truth() {
   (cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1) || return 0

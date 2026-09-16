@@ -10,7 +10,7 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 since=$(mtime "$marker"); since="${since:-0}"
 hand=$(mtime "$hf")
 # newest changed file (tracked or untracked), excluding the handoff; NUL-safe for odd paths
-newest=$(git ls-files -m -o --exclude-standard -z | grep -zvx "$hf" | xargs -0 -I{} sh -c '[ -f "$1" ] && (stat -f %m "$1" 2>/dev/null || stat -c %Y "$1")' _ {} | sort -n | tail -1)
+newest=$(git ls-files -m -o --exclude-standard -z | grep -zvx "$hf" | xargs -0 -I{} sh -c '[ -f "$1" ] && (stat -c %Y "$1" 2>/dev/null || stat -f %m "$1")' _ {} | sort -n | tail -1)
 lint=$(handoff_lint "$hf")
 if [ -n "$lint" ]; then
   jq -n --arg hf "$hf" --arg l "$(printf '%s' "$lint" | tr '\n' ';')" '{decision:"block",reason:("\($hf) fails lint: \($l). Fix it before stopping.")}'; exit 0
