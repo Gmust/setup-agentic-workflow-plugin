@@ -6,9 +6,10 @@
 ![dependencies](https://img.shields.io/badge/dependencies-none-2ea44f)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
-A skill that prepares a repository for coding agents: scoped instructions, one
-trustworthy check command, a handoff document, and optional CI — for
-single-project repositories and monorepos.
+A plugin that prepares a repository for coding agents — scoped instructions,
+one trustworthy check command, a living handoff, optional CI — and then keeps
+that handoff in the agent's context across long sessions. Four skills plus
+three hooks. Single-project repositories and monorepos.
 
 It sets up the workflow. It does not implement product features, scaffold a
 stack you have not chosen, or weaken your existing checks to make setup pass.
@@ -22,12 +23,44 @@ stack you have not chosen, or weaken your existing checks to make setup pass.
 | Agent entry points | `AGENTS.md`, `CLAUDE.md` (or `.claude/CLAUDE.md`) | Shared rules once, imported rather than duplicated |
 | Per-project instructions | `<project>/AGENTS.md` | In a monorepo, only what differs from the root |
 | Code and document map | inside `AGENTS.md` | Real entry points, ownership boundaries, which check covers what |
-| Handoff | `docs/HANDOFF.md` | Current state, verified evidence, limitations, next bounded task |
+| Handoff | `docs/HANDOFF.yaml` | Living snapshot: goal, done, wip, blocked, next, decisions — ~40 lines, refs not content |
 | Quality gate | your repository's own runner | One command that terminates and fails loudly |
 | CI | your existing provider | Calls the same command, on the platforms you claim to support |
 
 Existing files are merged, never replaced wholesale. A second run on an
 already-configured repository makes no changes.
+
+## Skills
+
+| Skill | Does | Standalone trigger |
+| --- | --- | --- |
+| `setup-agentic-workflow` | Inspects once, asks once, runs the three parts in order, validates | "prepare this repo for agents" |
+| `agent-entrypoints` | `AGENTS.md`, `CLAUDE.md` (+`@AGENTS.md`), monorepo per-project files, code map incl. design source of truth | "add AGENTS.md", "de-duplicate CLAUDE.md" |
+| `quality-gate` | One check command; CI on it. Never narrows an existing script | "set up checks", "add CI for agents" |
+| `handoff` | `/handoff [note]` refreshes `docs/HANDOFF.yaml`; first run adds the rule and optional hooks | "save progress", "snapshot state" |
+
+Each skill injects the repository's current state when it loads (`!`cmd``), so
+inspection costs no tool calls, and pre-approves its bundled scripts.
+
+## Context persistence
+
+Long sessions lose context on compaction; `docs/HANDOFF.yaml` is what survives.
+Three hooks, all no-op unless that file exists:
+
+| Hook | When | Does |
+| --- | --- | --- |
+| `handoff-inject.sh` | SessionStart (startup, resume, compact, clear) | Puts the handoff plus `git log -5` / `git status --short` back into context; flags lint problems |
+| `handoff-counter.sh` | PostToolUse | Every `HANDOFF_EVERY` (default 15) mutating calls — Edit/Write, or Bash that looks like a write — reminds the agent to refresh, with current git facts |
+| `handoff-stop.sh` | Stop | Refuses to end the turn while files changed this session are newer than the handoff, or `next` is empty, or the file exceeds 40 lines. Once per turn |
+
+`HANDOFF_FILE` overrides the path (repo-relative). Remove the Stop entry from
+`plugin.json` if the gate is too strict for your workflow. Without the plugin,
+`@docs/HANDOFF.yaml` in `CLAUDE.md` loads the snapshot at session start (re-read
+after compaction not guaranteed); Codex gets the rule in `AGENTS.md` only.
+
+Known gap: nothing fires right before compaction — a PreCompact hook cannot make
+the model write. The counter bounds staleness; lower `HANDOFF_EVERY` for very
+long sessions.
 
 ## How it works
 
@@ -42,7 +75,8 @@ flowchart TD
     E --> F
     F --> G["Write the minimum<br/>reusing existing paths and commands"]
     G --> H["Validate entry points,<br/>links and imports"]
-    H --> I["Leave a handoff saying<br/>what was actually verified"]
+    H --> I["Leave docs/HANDOFF.yaml saying<br/>what was actually verified"]
+    I --> J["Hooks re-inject it after compaction<br/>and gate Stop until it is fresh"]
 ```
 
 ## Install
@@ -54,48 +88,30 @@ flowchart TD
 /plugin install setup-agentic-workflow@gmust-plugins
 ```
 
-### Claude Code — manual
+### Claude Code — from a checkout
 
 ```sh
 git clone https://github.com/Gmust/setup-agentic-workflow-plugin
-cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/skills/setup-agentic-workflow \
-      ~/.claude/skills/
+claude --plugin-dir setup-agentic-workflow-plugin/plugins/setup-agentic-workflow
 ```
 
-Use `.claude/skills/` inside a repository instead to share it with that project
-only.
+Copying single skill folders into `~/.claude/skills/` is not supported any more:
+the skills reference `../../shared/` and `${CLAUDE_PLUGIN_ROOT}`, and the hooks
+live in `plugin.json`.
 
 ### Codex
 
 ```sh
 git clone https://github.com/Gmust/setup-agentic-workflow-plugin
 mkdir -p ~/.agents/skills
-cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/skills/setup-agentic-workflow \
-      ~/.agents/skills/
+cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/skills/* ~/.agents/skills/
+cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/shared ~/.agents/shared
 ```
 
-`agents/openai.yaml` inside the skill supplies the display name and default
-prompt. Codex has not yet been observed loading this skill — see
+`shared/` must sit two levels up from each `SKILL.md` so `../../shared/` links
+resolve. `${CLAUDE_PLUGIN_ROOT}` lines are Claude Code substitutions and will
+not expand under Codex; the hooks are Claude Code only. Codex has not yet been observed loading this skill — see
 [Feedback wanted](#feedback-wanted).
-
-### Claude apps — claude.ai, desktop, Cowork
-
-Download `setup-agentic-workflow.zip` from the
-[latest release](https://github.com/Gmust/setup-agentic-workflow-plugin/releases/latest)
-and upload it under **Customize → Skills → Add**.
-
-To build the archive yourself, run this from the repository root — the folder
-itself must be the archive root or the upload is rejected:
-
-```sh
-rm -f setup-agentic-workflow.zip
-( cd plugins/setup-agentic-workflow/skills && \
-  zip -r "$OLDPWD/setup-agentic-workflow.zip" setup-agentic-workflow \
-      -x '*.DS_Store' -x '*__pycache__*' )
-unzip -l setup-agentic-workflow.zip | head -5
-```
-
-The first entry must be `setup-agentic-workflow/`.
 
 ## Use
 
@@ -106,6 +122,7 @@ name:
 Prepare this repository for working with coding agents.
 Add AGENTS.md and rules for agents here.
 Set up checks and a handoff for agentic work.
+/handoff finished the retry logic, tests green
 ```
 
 It inspects the repository first, states the gaps and the files it proposes, and
@@ -140,7 +157,7 @@ Two things are unproven, and one report closes either of them:
    commands. The monorepo branch has been exercised on a constructed fixture and
    on a two-crate workspace, not on a large one in daily use.
 
-Useful in any report: the resulting `docs/HANDOFF.md` — if it claims something
+Useful in any report: the resulting `docs/HANDOFF.yaml` — if it claims something
 was verified that never ran, that is the most serious defect this skill can
 have — and whether a second run with the same answers changed anything.
 
@@ -155,8 +172,8 @@ command it discovers, and neither follows references outside the target
 repository.
 
 ```sh
-python3 scripts/inspect_repo.py <repo-root> [--max-depth N]
-python3 scripts/validate_setup.py <repo-root> --agents codex claude --document docs/HANDOFF.md
+python3 shared/scripts/inspect_repo.py <repo-root> [--max-depth N]
+python3 shared/scripts/validate_setup.py <repo-root> --agents codex claude --document docs/HANDOFF.yaml
 ```
 
 `inspect_repo.py` prints a bounded inventory of manifests, entry points, checks
@@ -182,14 +199,15 @@ instructions, or reason about CI semantics.
 ## Development
 
 ```sh
-python3 -B -m unittest discover \
-  -s plugins/setup-agentic-workflow/skills/setup-agentic-workflow/tests -v
+python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v
+sh plugins/setup-agentic-workflow/hooks/test.sh
 ```
 
-CI runs this on Ubuntu, macOS and Windows against Python 3.10 and 3.13.
+CI runs the Python suite on Ubuntu, macOS and Windows against Python 3.10 and
+3.13, and the hooks self-check on Ubuntu and macOS.
 
 The suite covers helper mechanics only. Behavioral scenarios for the skill
-itself live in `references/evaluation.md`; run them in disposable repositories,
+itself live in `shared/evaluation.md`; run them in disposable repositories,
 twice with the same answers, and compare file bytes between runs. A passing unit
 test is not evidence that the skill behaves correctly.
 

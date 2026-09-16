@@ -1,8 +1,8 @@
 {
   "name": "setup-agentic-workflow",
   "displayName": "Setup Agentic Workflow",
-  "version": "1.0.0",
-  "description": "Set up a repository so coding agents work safely in it: AGENTS.md and CLAUDE.md entry points, a code map, one shared check command, a handoff document, and optional CI, in single-project repositories and monorepos. Use when preparing a repo for Claude Code or Codex, when adding or standardizing AGENTS.md or CLAUDE.md, or when starting an agentic development workflow. Do not use for implementing product features.",
+  "version": "2.0.0",
+  "description": "Set up a repository so coding agents work safely in it — AGENTS.md/CLAUDE.md entry points, code map, one shared check command, living docs/HANDOFF.yaml, optional CI — as four skills (orchestrator, agent-entrypoints, quality-gate, handoff) plus hooks that re-inject the handoff after compaction and keep it fresh. For Claude Code and Codex, single repos and monorepos. Not for implementing product features.",
   "author": {
     "name": "Gmust",
     "url": "https://github.com/Gmust"
@@ -14,8 +14,48 @@
     "agents-md",
     "codex",
     "claude-code",
-    "monorepo"
+    "monorepo",
+    "handoff",
+    "context",
+    "hooks"
   ],
   "repository": "https://github.com/Gmust/setup-agentic-workflow-plugin",
-  "homepage": "https://github.com/Gmust/setup-agentic-workflow-plugin#readme"
+  "homepage": "https://github.com/Gmust/setup-agentic-workflow-plugin#readme",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/handoff-inject.sh\"",
+            "timeout": 5,
+            "statusMessage": "Loading handoff..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/handoff-counter.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/handoff-stop.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
 }
