@@ -31,9 +31,11 @@ inspect referenced files outside the target repository.
 Run mechanical tests using the standard library:
 
 ```sh
-python3 -B -m unittest discover -s <skill-dir>/tests -v
+python3 -B -m unittest discover -s ${CLAUDE_PLUGIN_ROOT}/shared/tests -v
 ```
 
 Record what actually ran and remaining limitations. Do not call a hypothetical
 walkthrough an observed agent evaluation, or a passing helper test proof that
 Claude/Codex loaded the generated instructions in a fresh session.
+| Long session | Existing repo with `docs/HANDOFF.yaml`; ask for setup for Claude Code | Working agreement gains the living-handoff rule; no second handoff document; hooks written into `.claude/settings.json` only if the user asked for team-wide setup. |
+| UI product | Web app with a Figma link in README and no design docs in repo | Ask for the design source of truth once; link it in source-of-truth order and code map; generate no tokens, DESIGN.md, or component specs. |

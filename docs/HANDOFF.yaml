@@ -1,0 +1,22 @@
+goal: v2 — four skills + living-handoff hooks, published via gmust-plugins
+done:
+  - split SKILL.md into orchestrator + agent-entrypoints/quality-gate/handoff; shared/ holds templates, scripts, tests
+  - hooks: inject on SessionStart, counter every N mutating calls, Stop gate (mtime + lint); hooks/test.sh green
+  - skills inject repo state at load (!cmd), allowed-tools pre-approve shared/scripts, /handoff [note]
+  - inspect_repo.py knows HANDOFF.yaml; helper tests 28 pass
+wip: null
+blocked: null
+next: install via /plugin marketplace add on a disposable repo, run /setup-agentic-workflow to first compaction, confirm handoff re-injected and !cmd blocks rendered
+decisions:
+  - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
+  - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
+  - PreCompact not used — cannot make the model write; counter bounds staleness
+refs: [plugins/setup-agentic-workflow/shared/templates.md, plugins/setup-agentic-workflow/hooks/]
+checks:
+  gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
+  last: pass (28 tests, hooks OK) 2026-09-16 — local macOS only; CI matrix pending this push
+platforms: [macOS local]
+limitations:
+  - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"
+  - Codex never observed loading any of the skills
+  - no evaluation scenario is automated

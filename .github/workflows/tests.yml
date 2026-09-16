@@ -29,8 +29,18 @@ jobs:
       - name: Helper tests
         run: |
           python -B -m unittest discover \
-            -s plugins/setup-agentic-workflow/skills/setup-agentic-workflow/tests -v
+            -s plugins/setup-agentic-workflow/shared/tests -v
       - name: Helpers stay importable and syntax-clean
         run: |
           python -m compileall -q \
-            plugins/setup-agentic-workflow/skills/setup-agentic-workflow/scripts
+            plugins/setup-agentic-workflow/shared/scripts
+  hooks:
+    name: hooks self-check / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh plugins/setup-agentic-workflow/hooks/test.sh
