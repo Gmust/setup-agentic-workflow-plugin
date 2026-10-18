@@ -8,7 +8,7 @@ done:
   - evaluation.md rows stranded after the closing prose moved back into the table
   - dual-review report applied — F1 first word only + `--`, F3 stale origin/<base> check, F4 untracked only for local scopes, F6 split verify → OPEN, 8 nits; 4 scenarios
   - 2.1.0 in plugin.json + marketplace.json; README, AGENTS.md scope/map/copies updated; Codex copy excludes dual-review
-wip: feat/boundaries-dual-review pushed, PR open; CI result pending
+wip: PR #2 (feat/boundaries-dual-review) open, CI green; awaiting merge
 blocked: null
 next: claude --plugin-dir plugins/setup-agentic-workflow in a disposable repo, /setup-agentic-workflow:dual-review on a branch with one planted bug; confirm the agent resolves and the report shape
 decisions:
@@ -20,8 +20,8 @@ decisions:
 refs: [plugins/setup-agentic-workflow/shared/templates.md, plugins/setup-agentic-workflow/skills/dual-review/SKILL.md, plugins/setup-agentic-workflow/shared/evaluation.md]
 checks:
   gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
-  last: pass (28 tests, hooks OK, compileall, claude plugin validate, validate_setup on repo) 2026-10-18 — macOS local; CI not run
-platforms: [macOS local]
+  last: pass (28 tests, hooks OK, compileall, claude plugin validate, validate_setup on repo) 2026-10-18 — macOS local; CI green on PR #2 (ubuntu/macos/windows, py3.10/3.13, hooks)
+platforms: [macOS local, CI ubuntu/macos/windows]
 limitations:
   - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"
   - Codex never observed loading any of the skills
