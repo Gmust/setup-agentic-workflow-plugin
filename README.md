@@ -9,7 +9,8 @@
 A plugin that prepares a repository for coding agents — scoped instructions,
 one trustworthy check command, a living handoff, optional CI — and then keeps
 that handoff in the agent's context across long sessions. Four skills plus
-three hooks. Single-project repositories and monorepos.
+three hooks. Single-project repositories and monorepos. Also ships
+`/dual-review`, a two-reviewer consensus code review.
 
 It sets up the workflow. It does not implement product features, scaffold a
 stack you have not chosen, or weaken your existing checks to make setup pass.
@@ -21,8 +22,9 @@ stack you have not chosen, or weaken your existing checks to make setup pass.
 | Artifact | Where | Purpose |
 | --- | --- | --- |
 | Agent entry points | `AGENTS.md`, `CLAUDE.md` (or `.claude/CLAUDE.md`) | Shared rules once, imported rather than duplicated |
-| Per-project instructions | `<project>/AGENTS.md` | In a monorepo, only what differs from the root |
-| Code and document map | inside `AGENTS.md` | Real entry points, ownership boundaries, which check covers what |
+| Per-project instructions | `<project>/AGENTS.md`, plus `<project>/CLAUDE.md` holding `@AGENTS.md` for Claude | In a monorepo, only what differs from the root |
+| Code and document map | inside `AGENTS.md` | Real entry points, ownership boundaries, which check covers what, one design source per UI project |
+| Boundaries | inside `AGENTS.md` | Real paths not to edit without asking — secrets, generated output, lockfiles, migrations, infra — and shared contracts with their owner and consumers |
 | Handoff | `docs/HANDOFF.yaml` | Living snapshot: goal, done, wip, blocked, next, decisions — ~40 lines, refs not content |
 | Quality gate | your repository's own runner | One command that terminates and fails loudly |
 | CI | your existing provider | Calls the same command, on the platforms you claim to support |
@@ -35,12 +37,23 @@ already-configured repository makes no changes.
 | Skill | Does | Standalone trigger |
 | --- | --- | --- |
 | `setup-agentic-workflow` | Inspects once, asks once, runs the three parts in order, validates | "prepare this repo for agents" |
-| `agent-entrypoints` | `AGENTS.md`, `CLAUDE.md` (+`@AGENTS.md`), monorepo per-project files, code map incl. design source of truth | "add AGENTS.md", "de-duplicate CLAUDE.md" |
+| `agent-entrypoints` | `AGENTS.md`, `CLAUDE.md` (+`@AGENTS.md`), monorepo per-project files, boundaries, code map incl. design source of truth | "add AGENTS.md", "de-duplicate CLAUDE.md" |
 | `quality-gate` | One check command; CI on it. Never narrows an existing script | "set up checks", "add CI for agents" |
 | `handoff` | `/handoff [note]` refreshes `docs/HANDOFF.yaml`; first run adds the rule and optional hooks | "save progress", "snapshot state" |
 
 Each skill injects the repository's current state when it loads (`!`cmd``), so
 inspection costs no tool calls, and pre-approves its bundled scripts.
+
+## Code review
+
+`/dual-review [--staged | #PR | base] [--fix] [--rounds N] [--models a,b] [--] [focus]`
+— user-invoked only, Claude Code only. Two read-only reviewers (correctness &
+safety, design & robustness) review the change in parallel, each round in a
+fresh session, and re-review one numbered fix list until both agree; items that
+stall are handed to you with both arguments. `--fix` applies the agreed fixes,
+runs the `Checks` command from `AGENTS.md`, and has fresh reviewers verify until
+both approve. Nothing is committed. A full run can take ~14 reviewer sessions;
+`--rounds` caps it.
 
 ## Context persistence
 
@@ -104,13 +117,15 @@ live in `plugin.json`.
 ```sh
 git clone https://github.com/Gmust/setup-agentic-workflow-plugin
 mkdir -p ~/.agents/skills
-cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/skills/* ~/.agents/skills/
+cd setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/skills
+cp -R setup-agentic-workflow agent-entrypoints quality-gate handoff ~/.agents/skills/
+cd -
 cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/shared ~/.agents/shared
 ```
 
 `shared/` must sit two levels up from each `SKILL.md` so `../../shared/` links
 resolve. `${CLAUDE_PLUGIN_ROOT}` lines are Claude Code substitutions and will
-not expand under Codex; the hooks are Claude Code only. Codex has not yet been observed loading this skill — see
+not expand under Codex; the hooks and `dual-review` are Claude Code only. Codex has not yet been observed loading this skill — see
 [Feedback wanted](#feedback-wanted).
 
 ## Use
@@ -123,6 +138,7 @@ Prepare this repository for working with coding agents.
 Add AGENTS.md and rules for agents here.
 Set up checks and a handoff for agentic work.
 /handoff finished the retry logic, tests green
+/dual-review main --fix
 ```
 
 It inspects the repository first, states the gaps and the files it proposes, and

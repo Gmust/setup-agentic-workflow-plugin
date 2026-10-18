@@ -5,12 +5,12 @@
     "url": "https://github.com/Gmust"
   },
   "description": "Plugins for setting up agent-friendly repositories.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "plugins": [
     {
       "name": "setup-agentic-workflow",
       "source": "./plugins/setup-agentic-workflow",
-      "description": "Four skills (setup orchestrator, agent-entrypoints, quality-gate, handoff) plus context-persistence hooks: living docs/HANDOFF.yaml re-injected after compaction."
+      "description": "Four skills (setup orchestrator, agent-entrypoints, quality-gate, handoff) plus context-persistence hooks: living docs/HANDOFF.yaml re-injected after compaction; /dual-review consensus code review."
     }
   ]
 }

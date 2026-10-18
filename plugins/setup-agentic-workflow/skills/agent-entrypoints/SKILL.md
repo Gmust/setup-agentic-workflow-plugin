@@ -1,6 +1,6 @@
 ---
 name: agent-entrypoints
-description: "Add or standardize agent instruction files: root AGENTS.md and CLAUDE.md with @AGENTS.md import, per-project AGENTS.md in monorepos, the working agreement, and a code and document map that links requirements, architecture, ADRs and the design source of truth (Figma, DESIGN.md, tokens). Use when a repo needs AGENTS.md or CLAUDE.md created, merged, or de-duplicated, or when the code map is missing or stale. Does not touch checks, CI, or the handoff."
+description: "Add or standardize agent instruction files: root AGENTS.md and CLAUDE.md with @AGENTS.md import, per-project AGENTS.md in monorepos (plus a CLAUDE.md importing it for Claude), the working agreement, boundaries (do-not-touch paths, shared contracts), and a code and document map that links requirements, architecture, ADRs and the design source of truth (Figma, DESIGN.md, tokens). Use when a repo needs AGENTS.md or CLAUDE.md created, merged, or de-duplicated, or when the code map is missing or stale. Does not touch checks, CI, or the handoff."
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/shared/scripts/*), Bash(git status *), Bash(git log *), Bash(git diff *)
 ---
 
@@ -40,9 +40,11 @@ and, for a UI product, the design source of truth if not inferable.
   `AGENTS.md` and give each in-scope project its own `AGENTS.md` holding only
   what differs: purpose, ownership boundary, check commands, and local
   constraints. Do not restate or copy root rules into it; two copies drift.
-  Add a per-project `CLAUDE.md` importing the root `AGENTS.md` by relative path
-  only when Claude must load that project's rules without the root file, and
-  never alongside a duplicated copy of the same content. A single-project
+  When Claude is a target, give each such project a `CLAUDE.md` containing
+  `@AGENTS.md`, its own file: Claude loads a subdirectory's `CLAUDE.md` on
+  demand and the root one by walking up from where it starts, so never import
+  the root `AGENTS.md` there — that loads root rules twice and still misses
+  the project's deltas. A single-project
   repository gets root files only. In the root code map, reference each in-scope
   package's `AGENTS.md` as a relative Markdown link rather than as plain text,
   so a renamed or moved package breaks the link instead of leaving the map
@@ -51,6 +53,13 @@ and, for a UI product, the design source of truth if not inferable.
   inspect-before-editing, preserving unrelated work, destructive-action
   confirmation, expected evidence before implementation, focused changes,
   verification, and handoff. Link to detail rather than duplicating it.
+- **Boundaries:** List the paths agents must not edit without asking:
+  secrets and env files, generated output, lockfiles, vendored code,
+  migrations, infra/deploy and production config. Name only paths that exist
+  in this repository; never ship a generic list. When several projects share a
+  contract (OpenAPI, proto, GraphQL schema, shared types package), list it with
+  its owning project and its consumers: changing it needs confirmation and
+  names every consumer it affects.
 - **Code and document map:** Identify actual entry points and ownership boundaries.
   Link product requirements, architecture, accepted decisions, and relevant
   checks by task when those documents exist. Label plans and unresolved decisions.
@@ -58,7 +67,9 @@ and, for a UI product, the design source of truth if not inferable.
   architecture, or precedence between conflicting documents.
   For a UI product, link the design source of truth (Figma URL, `DESIGN.md`,
   tokens, Storybook) in the source-of-truth order and the map, stating whether
-  code or design wins on conflict. Do not generate tokens or specs.
+  code or design wins on conflict; in a monorepo, one per UI project when they
+  differ (web, mobile, desktop and admin apps often do). Do not generate
+  tokens or specs.
 
 Keep credentials, private prompts and machine-specific absolute paths out.
 

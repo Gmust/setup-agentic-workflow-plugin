@@ -22,6 +22,10 @@ instructions but no handoff fails its scenario, however good the instructions ar
 | Workspace file, no members | `pnpm-workspace.yaml` present but declaring only unrelated settings, one manifest | Treat it as a single project; no per-package instructions for packages that do not exist. |
 | No runner available | Bare Cargo or single-binary repository with several separate check commands | Ask before introducing a new tool to chain them; record it in the handoff as a new requirement; do not commit an OS-specific script. |
 | Existing gate | Repository already has a check command wired to a hook and CI, missing one step | Document the existing command and report the missing step; no edit to the manifest, no script narrowed, no hook made slower without agreement. |
+| Long session | Existing repo with `docs/HANDOFF.yaml`; ask for setup for Claude Code | Working agreement gains the living-handoff rule; no second handoff document; hooks written into `.claude/settings.json` only if the user asked for team-wide setup. |
+| Multi-service | One repository, no workspace config: web, backend with `openapi.yaml`, mobile, desktop and CRM, each with its own manifest and Figma file; request both agents | Each service gets an AGENTS.md of deltas and a CLAUDE.md that imports only its own AGENTS.md; root Boundaries names `openapi.yaml` with owner and consumers; the map has one Design row per app; no shared runner means asking before adding one. |
+| Boundaries | Repository with a lockfile, a generated `dist/`, a `migrations/` directory and a dev-server script | AGENTS.md Boundaries names exactly those paths, nothing generic or absent; Checks lists the dev command as not part of the gate. |
+| UI product | Web app with a Figma link in README and no design docs in repo | Ask for the design source of truth once; link it in source-of-truth order and code map; generate no tokens, DESIGN.md, or component specs. |
 
 Also exercise nested `.claude/CLAUDE.md`, missing local links, import cycles,
 external symlinks, links inside fenced and indented code blocks, and
@@ -37,5 +41,19 @@ python3 -B -m unittest discover -s ${CLAUDE_PLUGIN_ROOT}/shared/tests -v
 Record what actually ran and remaining limitations. Do not call a hypothetical
 walkthrough an observed agent evaluation, or a passing helper test proof that
 Claude/Codex loaded the generated instructions in a fresh session.
-| Long session | Existing repo with `docs/HANDOFF.yaml`; ask for setup for Claude Code | Working agreement gains the living-handoff rule; no second handoff document; hooks written into `.claude/settings.json` only if the user asked for team-wide setup. |
-| UI product | Web app with a Figma link in README and no design docs in repo | Ask for the design source of truth once; link it in source-of-truth order and code map; generate no tokens, DESIGN.md, or component specs. |
+
+## dual-review
+
+Run on a disposable branch. Reviewers are read-only; the coordinator edits only
+with `--fix` or the user's yes. These scenarios need no handoff.
+
+| Scenario | Request and starting state | Expected observable outcome |
+| --- | --- | --- |
+| Plugin agent | Plugin installed; `/dual-review` on a branch with one change | Both reviewers launch in one message, fresh, as the plugin-scoped `dual-reviewer` the session lists (e.g. `setup-agentic-workflow:dual-reviewer`); no "agent not found". |
+| Consensus | Branch with one real off-by-one bug and one naming nit | The bug ends ACCEPTED with a `path:line` fix; the nit is listed, never voted on; no file changes; empty report sections omitted. |
+| Deadlock | A finding one reviewer rejects with evidence every round | The coordinator adds no findings and breaks no tie; votes repeated unchanged two rounds mark it DEADLOCKED and hand both arguments to the user. |
+| Fix and verify | `--fix` with agreed fixes; AGENTS.md documents a `Checks` command | Each fix applied as agreed or marked NOT_APPLIED; the Checks command runs; fresh VERIFY pairs loop until both APPROVE or 3 rounds; nothing committed. |
+| Focus notes | `/dual-review main check HEAD handling`, then `/dual-review -- main is flaky` | First: base `main`, `check HEAD handling` stays focus notes. Second: no-target scope, the whole text is focus notes. |
+| Stale PR base | Current branch is a PR head; local `origin/<base>` is behind `baseRefOid` | Offers `git fetch origin <base>` and waits for approval; declined → the review runs and the report says base-branch commits may be included. |
+| Staged scope | `--staged` with an untracked scratch file present | SCOPE lists no untracked files. |
+| Split verify | In VERIFY, one reviewer says NOT_FIXED, the other FIXED | No edit that round; the item goes to the next verify round as OPEN and is edited only after both votes resolve it. |
