@@ -47,6 +47,7 @@ pass / fail / not-run with a reason as the baseline, then propose before editing
 
 Document the command in the `Checks` section of `AGENTS.md` if that file exists
 (see [templates](../../shared/templates.md)); otherwise report where it should go.
+List an existing local run/dev command there too, labelled as not part of the gate.
 
 ## Validate
 

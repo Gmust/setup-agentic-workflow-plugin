@@ -24,6 +24,8 @@ or design wins on conflict.]
 | [name] | [relative/path] | [responsibility] | [command] |
 | Design | [Figma URL or design/DESIGN.md] | [UI source of truth; consult before UI changes] | [visual/a11y check if any] |
 
+One Design row per UI project when their designs differ.
+
 In a monorepo, link each in-scope package's instructions from this table so
 the link breaks when a package moves:
 `| API | [packages/api](packages/api/AGENTS.md) | ... | [command] |`
@@ -34,8 +36,17 @@ the link breaks when a package moves:
 - State expected evidence before implementing.
 - Keep changes focused on the requested scope.
 
+## Boundaries
+Do not edit without asking: [this repository's actual secrets and env files,
+generated output, lockfiles, vendored code, migrations, infra/deploy and
+production config paths].
+Shared contracts (omit when none): [OpenAPI / proto / schema / shared types
+path] — owned by [project], used by [projects]. Before changing one, ask and
+name every consumer it affects.
+
 ## Checks
-[The single command, how to install what it needs, and what it does not cover.]
+[The single command, how to install what it needs, and what it does not cover.
+The local run/dev command, if one exists, labelled as not part of the gate.]
 
 ## Handoff
 [Where session state is recorded and what must be filled in.]
@@ -67,6 +78,9 @@ Only what differs from the root file. Do not restate shared rules.
 ```
 
 For an existing `.claude/CLAUDE.md`, the import is `@../AGENTS.md`.
+
+Per-project `CLAUDE.md` (monorepo, Claude target): `@AGENTS.md` only, importing
+that project's own file. Root rules already load from the parent directory.
 
 ## `docs/HANDOFF.yaml`
 

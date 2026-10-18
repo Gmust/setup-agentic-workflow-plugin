@@ -64,7 +64,8 @@ that affect the result, in a concise batch:
   from whichever agent is currently running the setup.
 - Supported platforms and desired automation (local checks, CI, or both).
 - For a product with a UI: the design source of truth — Figma file or node
-  URL, `DESIGN.md`, a tokens directory, a Storybook, or none. Record it in
+  URL, `DESIGN.md`, a tokens directory, a Storybook, or none; in a monorepo,
+  one per UI project when web, mobile, desktop or admin apps differ. Record it in
   the source-of-truth order and code map so UI work starts from it instead of
   from guesswork. Do not generate tokens, specs, or a design system; that is
   separate design tooling, linked from the map when it is already present.
@@ -83,7 +84,8 @@ Pass the inspection result and answers to each part rather than letting it
 re-inspect. Each part is idempotent and skips what is already correct.
 
 1. **agent-entrypoints** — `AGENTS.md`, `CLAUDE.md`, per-project files, working
-   agreement, code and document map (including the design source of truth).
+   agreement, boundaries, code and document map (including the design source
+   of truth).
 2. **quality-gate** — the single check command, and CI on it when requested.
 3. **handoff** — living `docs/HANDOFF.yaml`, the handoff rule, optional hooks.
 

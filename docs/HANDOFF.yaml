@@ -1,22 +1,29 @@
-goal: v2 — four skills + living-handoff hooks, published via gmust-plugins
+goal: v2.1 — boundaries, per-service Claude wiring, shared contracts, per-app design, /dual-review in the plugin
 done:
-  - split SKILL.md into orchestrator + agent-entrypoints/quality-gate/handoff; shared/ holds templates, scripts, tests
-  - hooks: inject on SessionStart, counter every N mutating calls, Stop gate (mtime + lint); hooks/test.sh green
-  - skills inject repo state at load (!cmd), allowed-tools pre-approve shared/scripts, /handoff [note]
-  - inspect_repo.py knows HANDOFF.yaml; helper tests 28 pass
-wip: null
+  - Boundaries section + shared contracts (owner, consumers) — shared/templates.md, agent-entrypoints; scenarios Boundaries, Multi-service
+  - per-project CLAUDE.md imports its own AGENTS.md, not the root one — agent-entrypoints, templates.md
+  - one design source per UI project — orchestrator question, map rule, template
+  - local run/dev command listed in Checks, labelled not part of the gate — quality-gate, templates.md
+  - skills/dual-review + agents/dual-reviewer.md; plugin-scoped agent name; 4 scenarios in evaluation.md
+  - evaluation.md rows stranded after the closing prose moved back into the table
+  - dual-review report applied — F1 first word only + `--`, F3 stale origin/<base> check, F4 untracked only for local scopes, F6 split verify → OPEN, 8 nits; 4 scenarios
+  - 2.1.0 in plugin.json + marketplace.json; README, AGENTS.md scope/map/copies updated; Codex copy excludes dual-review
+wip: feat/boundaries-dual-review pushed, PR open; CI result pending
 blocked: null
-next: install via /plugin marketplace add on a disposable repo, run /setup-agentic-workflow to first compaction, confirm handoff re-injected and !cmd blocks rendered
+next: claude --plugin-dir plugins/setup-agentic-workflow in a disposable repo, /setup-agentic-workflow:dual-review on a branch with one planted bug; confirm the agent resolves and the report shape
 decisions:
   - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
   - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
   - PreCompact not used — cannot make the model write; counter bounds staleness
-refs: [plugins/setup-agentic-workflow/shared/templates.md, plugins/setup-agentic-workflow/hooks/]
+  - dual-review ships in this plugin, not a second one (owner's call); plugin-only since it needs the agent
+  - Claude loads subdirectory CLAUDE.md on demand and parent ones by walking up (code.claude.com memory docs)
+refs: [plugins/setup-agentic-workflow/shared/templates.md, plugins/setup-agentic-workflow/skills/dual-review/SKILL.md, plugins/setup-agentic-workflow/shared/evaluation.md]
 checks:
   gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
-  last: pass (28 tests, hooks OK) 2026-09-16 — local macOS only; CI matrix pending this push
+  last: pass (28 tests, hooks OK, compileall, claude plugin validate, validate_setup on repo) 2026-10-18 — macOS local; CI not run
 platforms: [macOS local]
 limitations:
   - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"
   - Codex never observed loading any of the skills
-  - no evaluation scenario is automated
+  - no evaluation scenario is automated; dual-review never run from the plugin
+  - hooks watch one HANDOFF_FILE; per-project handoffs in a monorepo are not followed
