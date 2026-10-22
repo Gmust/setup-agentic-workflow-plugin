@@ -12,7 +12,7 @@ Orchestrator. Inspect once, ask once, then run the part skills in order:
 
 ## Repository inventory (generated now)
 
-Existing agent files: !`ls AGENTS.md CLAUDE.md .claude/CLAUDE.md docs/HANDOFF.yaml 2>/dev/null || echo none`
+Existing agent files: !`ls AGENTS.md CLAUDE.md .claude/CLAUDE.md REVIEW.md docs/HANDOFF.yaml 2>/dev/null || echo none`
 Git: !`git log --oneline -5 2>/dev/null; git status --short 2>/dev/null | head -20`
 Inventory:
 !`python3 ${CLAUDE_PLUGIN_ROOT}/shared/scripts/inspect_repo.py . 2>&1 | head -80`
@@ -71,6 +71,8 @@ that affect the result, in a concise batch:
   separate design tooling, linked from the map when it is already present.
 - In a monorepo, which projects are in scope for this setup.
 - Actual project constraints such as sensitive data or deployment boundaries.
+- AI code review: Claude Code's Code Review, `/dual-review`, or none. Either
+  of the first two gets a `REVIEW.md`; none gets no file.
 
 For an empty repository without a selected stack, ask about the intended stack
 before proposing build commands. Workflow setup does not authorize scaffolding a
@@ -85,7 +87,7 @@ re-inspect. Each part is idempotent and skips what is already correct.
 
 1. **agent-entrypoints** — `AGENTS.md`, `CLAUDE.md`, per-project files, working
    agreement, boundaries, code and document map (including the design source
-   of truth).
+   of truth), and `REVIEW.md` and the PR template when AI review is used.
 2. **quality-gate** — the single check command, and CI on it when requested.
 3. **handoff** — living `docs/HANDOFF.yaml`, the handoff rule, optional hooks.
 
@@ -138,4 +140,9 @@ Before reporting the work done, confirm the handoff exists and says what was
 actually verified — including checks that were not run, and why. Then report
 outcome, changed files/contracts, checks actually run and baseline deltas,
 platforms observed, limitations, and the next independently verifiable task.
+Recommend, never install or apply: the separate `dual-review` plugin
+(`/plugin install dual-review@gmust-plugins`, or its `install.sh` without the
+plugin system) for a fresh-context review before each PR when the user chose
+it and it is not installed, and branch protection for the Human review
+required paths on a GitHub repository.
 For skill maintenance, use [behavioral scenarios](../../shared/evaluation.md).

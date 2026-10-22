@@ -2,14 +2,14 @@
 
 ## Mission and scope
 
-This repository publishes one plugin, `setup-agentic-workflow`: four skills
+This repository publishes two plugins. `setup-agentic-workflow`: four skills
 (`setup-agentic-workflow` orchestrator, `agent-entrypoints`, `quality-gate`,
-`handoff`), shared templates and helpers, hooks that keep a living
-`docs/HANDOFF.yaml` in context across compaction, and `dual-review` (skill plus
-the read-only `agents/dual-reviewer.md`), a user-invoked consensus code review.
-The plugin prepares other repositories for coding agents and reviews changes in
-them. It does not implement product
-features, and neither does work in this repository.
+`handoff`), shared templates and helpers, and hooks that keep a living
+`docs/HANDOFF.yaml` in context across compaction; it prepares other
+repositories for coding agents. `dual-review`: a user-invoked consensus code
+review (skill plus the read-only `dual-reviewer` agent), which setup recommends
+and never installs; see [its AGENTS.md](plugins/dual-review/AGENTS.md). Neither
+implements product features, and neither does work in this repository.
 
 Out of scope: adding unrelated plugins, changing anyone's installed copies, and
 any change to `LICENSE` authorship.
@@ -25,8 +25,9 @@ The plugin exists in four places, and only one of them is editable here:
 | Claude Code | `~/.claude/skills/setup-agentic-workflow/` | no — copy from source |
 | Codex | `~/.agents/skills/` and `~/.codex/skills/` | no — copy from source |
 
-`dual-review` exists only in the plugin: it needs the plugin's `dual-reviewer`
-agent, so the account ZIP and the Codex copies leave it out.
+`dual-review` is not part of these copies. Its own source is
+`plugins/dual-review/`, installed as a plugin or by its `install.sh` /
+`install.ps1` from a zip of that folder; Codex has no equivalent.
 
 Editing an installed copy changes nothing here and is silently lost on the next
 install. Always edit the source, then rebuild the ZIP as `README.md` describes.
@@ -35,7 +36,6 @@ Never write to a path outside this repository as part of a change here.
 ## Source of truth, in order
 
 1. The `SKILL.md` files under [`skills/`](plugins/setup-agentic-workflow/skills/setup-agentic-workflow/SKILL.md)
-   (four setup skills plus `dual-review`) and `agents/dual-reviewer.md`
    — behavior. Each frontmatter `description` decides when that skill
    activates. The orchestrator links the parts by relative path; keep those
    links valid.
@@ -52,7 +52,7 @@ Never write to a path outside this repository as part of a change here.
 | --- | --- | --- | --- |
 | Orchestrator | `.../skills/setup-agentic-workflow/SKILL.md` | Inspect once, ask once, run the parts, validate | behavioral scenarios, run by hand |
 | Part skills | `.../skills/{agent-entrypoints,quality-gate,handoff}/SKILL.md` | One artifact each; standalone and idempotent | behavioral scenarios, run by hand |
-| Review | `.../skills/dual-review/SKILL.md`, `.../agents/dual-reviewer.md` | Coordinator and read-only reviewer: consensus rounds, optional fix and verify | behavioral scenarios, run by hand |
+| Review plugin | [plugins/dual-review](plugins/dual-review/AGENTS.md) | Coordinator and read-only reviewer: consensus rounds, risk-based depth, optional fix and verify | its `evaluation.md`, run by hand |
 | Hooks | `.../hooks/*.sh` | Re-inject handoff on SessionStart; remind every N mutating calls; block Stop while tree newer than handoff or handoff fails lint | `hooks/test.sh` |
 | Templates | `.../shared/templates.md` | Skeletons the skills fill in, incl. `HANDOFF.yaml` and the living-handoff rule | none automated |
 | Scenarios | `.../shared/evaluation.md` | How a change is judged | run by hand in disposable repositories |
@@ -61,8 +61,9 @@ Never write to a path outside this repository as part of a change here.
 | Manifests | `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json` | Marketplace and plugin identity | none automated |
 | CI | `.github/workflows/tests.yml` | The gate on three platforms | itself |
 
-One plugin is declared in `marketplace.json`. A second plugin is when each gets
-its own `AGENTS.md`; today a per-plugin file would only restate this one.
+Two plugins are declared in `marketplace.json`. `dual-review` has its own
+`AGENTS.md` with what differs; this file covers the repository and the setup
+plugin, so a per-plugin file for setup would only restate it.
 
 ## Working rules
 

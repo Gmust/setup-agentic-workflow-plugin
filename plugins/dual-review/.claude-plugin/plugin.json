@@ -1,0 +1,20 @@
+{
+  "name": "dual-review",
+  "displayName": "Dual Review",
+  "version": "2.2.0",
+  "description": "/dual-review: two fresh read-only reviewers (plus a dedicated security reviewer on risky changes) review the current change in parallel and re-review one numbered fix list until both agree. Depth follows the change's risk; findings carry every instance of a bug class; pre-existing bugs are listed apart; REVIEW.md is followed when present. --fix applies agreed fixes and has fresh reviewers verify them. Claude Code only.",
+  "author": {
+    "name": "Gmust",
+    "url": "https://github.com/Gmust"
+  },
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "review",
+    "claude-code",
+    "subagents",
+    "security"
+  ],
+  "repository": "https://github.com/Gmust/setup-agentic-workflow-plugin",
+  "homepage": "https://github.com/Gmust/setup-agentic-workflow-plugin/tree/main/plugins/dual-review#readme"
+}

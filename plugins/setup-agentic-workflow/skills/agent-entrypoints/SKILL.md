@@ -1,6 +1,6 @@
 ---
 name: agent-entrypoints
-description: "Add or standardize agent instruction files: root AGENTS.md and CLAUDE.md with @AGENTS.md import, per-project AGENTS.md in monorepos (plus a CLAUDE.md importing it for Claude), the working agreement, boundaries (do-not-touch paths, shared contracts), and a code and document map that links requirements, architecture, ADRs and the design source of truth (Figma, DESIGN.md, tokens). Use when a repo needs AGENTS.md or CLAUDE.md created, merged, or de-duplicated, or when the code map is missing or stale. Does not touch checks, CI, or the handoff."
+description: "Add or standardize agent instruction files: root AGENTS.md and CLAUDE.md with @AGENTS.md import, per-project AGENTS.md in monorepos (plus a CLAUDE.md importing it for Claude), the working agreement, boundaries (do-not-touch paths, human-review paths, shared contracts), a code and document map that links requirements, architecture, ADRs and the design source of truth (Figma, DESIGN.md, tokens), and review entry points (REVIEW.md, PR template) when the team uses AI review. Use when a repo needs AGENTS.md, CLAUDE.md or REVIEW.md created, merged, or de-duplicated, or when the code map is missing or stale. Does not touch checks, CI, or the handoff."
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/shared/scripts/*), Bash(git status *), Bash(git log *), Bash(git diff *)
 ---
 
@@ -8,7 +8,7 @@ allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/shared/scripts/*), Bash(git st
 
 ## Current state (generated now)
 
-Files: !`ls AGENTS.md CLAUDE.md .claude/CLAUDE.md 2>/dev/null || echo none`
+Files: !`ls AGENTS.md CLAUDE.md .claude/CLAUDE.md REVIEW.md .github/pull_request_template.md .github/CODEOWNERS CODEOWNERS 2>/dev/null || echo none`
 Root AGENTS.md head: !`head -40 AGENTS.md 2>/dev/null`
 Root CLAUDE.md head: !`head -20 CLAUDE.md .claude/CLAUDE.md 2>/dev/null`
 Monorepo markers: !`ls pnpm-workspace.yaml go.work turbo.json nx.json MODULE.bazel settings.gradle 2>/dev/null; jq -c .workspaces package.json 2>/dev/null; grep -l '^\[workspace\]' Cargo.toml 2>/dev/null`
@@ -52,10 +52,13 @@ and, for a UI product, the design source of truth if not inferable.
 - **Working agreement:** Keep instructions concise: source-of-truth order,
   inspect-before-editing, preserving unrelated work, destructive-action
   confirmation, expected evidence before implementation, focused changes,
-  verification, and handoff. Link to detail rather than duplicating it.
+  verification, handoff, and turning a bug review missed into a rule or a
+  check. Link to detail rather than duplicating it.
 - **Boundaries:** List the paths agents must not edit without asking:
   secrets and env files, generated output, lockfiles, vendored code,
-  migrations, infra/deploy and production config. Name only paths that exist
+  migrations, CI workflows, infra/deploy and production config, and the
+  paths that always need a human reviewer (auth, billing, CI and release
+  workflows, installers or updaters). Name only paths that exist
   in this repository; never ship a generic list. When several projects share a
   contract (OpenAPI, proto, GraphQL schema, shared types package), list it with
   its owning project and its consumers: changing it needs confirmation and
@@ -70,6 +73,15 @@ and, for a UI product, the design source of truth if not inferable.
   code or design wins on conflict; in a monorepo, one per UI project when they
   differ (web, mobile, desktop and admin apps often do). Do not generate
   tokens or specs.
+- **Review entry points:** Only when the team uses AI review (Claude Code's
+  Code Review, `/dual-review`); ask if not inferable. Root `REVIEW.md` from
+  facts already gathered: what Important means from the mission and
+  constraints, Do not report from the check command and the generated,
+  vendored and lockfile paths, Always check from the Human review required
+  paths and rules no linter can enforce. Keep it short and specific to this
+  repository; never paste a stack's generic best practices. On a GitHub
+  repository without a pull request template, add one with Testing, Risk and
+  How to revert. `CODEOWNERS` only with handles the user gives.
 
 Keep credentials, private prompts and machine-specific absolute paths out.
 
