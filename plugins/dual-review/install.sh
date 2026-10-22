@@ -6,7 +6,7 @@
 #   ./install.sh --as-code-review    # also take over /code-review
 #   ./install.sh --uninstall [--project]
 #
-# Existing files are moved to *.bak.<timestamp>, never overwritten.
+# Existing files are moved to .claude/backups/, never overwritten.
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,10 +27,13 @@ done
 STAMP="$(date +%Y%m%d-%H%M%S)"
 AGENT_FILE="$DEST/agents/dual-reviewer.md"
 
+# Backups live outside skills/ and agents/: a folder left there still loads.
 backup() {
   if [ -e "$1" ]; then
-    local target="$1.bak.$STAMP" n=1
-    while [ -e "$target" ]; do target="$1.bak.$STAMP.$n"; n=$((n + 1)); done
+    local base="$DEST/backups/${1#"$DEST"/}" n=1
+    local target="$base.bak.$STAMP"
+    mkdir -p "$(dirname "$base")"
+    while [ -e "$target" ]; do target="$base.bak.$STAMP.$n"; n=$((n + 1)); done
     mv "$1" "$target"
     echo "  backed up $1 -> $target"
   fi
@@ -45,7 +48,7 @@ if [ "$UNINSTALL" -eq 1 ]; then
       backup "$dir"
     fi
   done
-  echo "Done. Backups are kept next to the originals; delete them when you're sure."
+  echo "Done. Backups are in $DEST/backups/; delete them when you're sure."
   exit 0
 fi
 

@@ -48,7 +48,7 @@ unzip dual-review.zip && cd dual-review
 ./install.sh                      # personal, every project
 ./install.sh --project            # run from a repo root; commit .claude/ to share with the team
 ./install.sh --as-code-review     # install it as /code-review instead of /dual-review
-./install.sh --uninstall          # moves the files aside as *.bak.<timestamp>
+./install.sh --uninstall          # moves the files to .claude/backups/
 ```
 
 ### Windows (PowerShell)
@@ -60,7 +60,7 @@ cd .\dual-review
 powershell -ExecutionPolicy Bypass -File .\install.ps1      # personal, every project
 # -Project       run from a repo root to install into .\.claude
 # -AsCodeReview  install it as /code-review
-# -Uninstall     move the files aside as *.bak.<timestamp>
+# -Uninstall     move the files to .claude\backups\
 ```
 
 It installs into `%USERPROFILE%\.claude`. `-ExecutionPolicy Bypass` applies to

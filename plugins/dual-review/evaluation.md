@@ -20,4 +20,4 @@ through on paper is not an observed run.
 | Stale PR base | Current branch is a PR head; local `origin/<base>` is behind `baseRefOid` | Offers `git fetch origin <base>` and waits for approval; declined → the review runs and the report says base-branch commits may be included. |
 | Staged scope | `--staged` with an untracked scratch file present | SCOPE lists no untracked files. |
 | Split verify | In VERIFY, one reviewer says NOT_FIXED, the other FIXED | No edit that round; the item goes to the next verify round as OPEN and is edited only after both votes resolve it. |
-| Installer | `install.sh` with `HOME` pointed at an empty directory | Agent and skill land under `$HOME/.claude`; the installed `SKILL.md` matches the source byte for byte; a second run backs up instead of overwriting. |
+| Installer | `install.sh` with `HOME` pointed at an empty directory, run twice, then `--uninstall` | Agent and skill land under `$HOME/.claude`; the installed `SKILL.md` matches the source byte for byte; later runs move the old copies to `.claude/backups/`, so `skills/` and `agents/` hold exactly one `dual-review` and one `dual-reviewer.md` (none after uninstall). |

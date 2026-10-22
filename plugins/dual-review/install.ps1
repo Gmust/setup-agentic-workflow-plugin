@@ -6,7 +6,7 @@ Installs the /dual-review skill and its dual-reviewer subagent for Claude Code (
   powershell -ExecutionPolicy Bypass -File .\install.ps1 -AsCodeReview   # also take over /code-review
   powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall [-Project]
 
-Existing files are moved to *.bak.<timestamp>, never overwritten.
+Existing files are moved to .claude\backups\, never overwritten.
 #>
 [CmdletBinding()]
 param(
@@ -26,11 +26,14 @@ $SkillsDir = Join-Path $Dest 'skills'
 $AgentFile = Join-Path $AgentsDir 'dual-reviewer.md'
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
+# Backups live outside skills\ and agents\: a folder left there still loads.
 function Backup-Path([string]$Path) {
     if (Test-Path -LiteralPath $Path) {
-        $target = "$Path.bak.$Stamp"
+        $base = Join-Path (Join-Path $Dest 'backups') $Path.Substring($Dest.Length).TrimStart('\', '/')
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $base) | Out-Null
+        $target = "$base.bak.$Stamp"
         $n = 1
-        while (Test-Path -LiteralPath $target) { $target = "$Path.bak.$Stamp.$n"; $n++ }
+        while (Test-Path -LiteralPath $target) { $target = "$base.bak.$Stamp.$n"; $n++ }
         Move-Item -LiteralPath $Path -Destination $target
         Write-Host "  backed up $Path -> $target"
     }
@@ -46,7 +49,7 @@ if ($Uninstall) {
             Backup-Path $dir
         }
     }
-    Write-Host "Done. Backups are kept next to the originals; delete them when you're sure."
+    Write-Host "Done. Backups are in $(Join-Path $Dest 'backups'); delete them when you're sure."
     return
 }
 
