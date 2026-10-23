@@ -130,8 +130,10 @@ cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/shared ~/.age
 
 `shared/` must sit two levels up from each `SKILL.md` so `../../shared/` links
 resolve. `${CLAUDE_PLUGIN_ROOT}` lines are Claude Code substitutions and will
-not expand under Codex; the hooks and `dual-review` are Claude Code only. Codex has not yet been observed loading this skill — see
-[Feedback wanted](#feedback-wanted).
+not expand under Codex; the hooks and `dual-review` are Claude Code only.
+Codex has been observed activating the skill once (codex-cli 0.160.0, the four
+skills in a repository's `.agents/skills/`, a request that did not name the
+skill) — see [Feedback wanted](#feedback-wanted) for what is still open.
 
 ## Use
 
@@ -170,10 +172,12 @@ This is the part that distinguishes it from "generate me an AGENTS.md":
 
 ## Feedback wanted
 
-Two things are unproven, and one report closes either of them:
+Two things are thin, and one report helps either of them:
 
-1. **Codex activation.** Run it in a repository with no agent files, phrase the
-   request in your own words, and do not name the skill. Did it activate?
+1. **Codex in daily use.** Activation was observed once, on a constructed
+   fixture with the skills in the repository's `.agents/skills/`. Install them
+   as above, run it in a repository with no agent files, phrase the request in
+   your own words, and do not name the skill. Did it activate?
 2. **A real monorepo.** Several packages with genuinely different check
    commands. The monorepo branch has been exercised on a constructed fixture and
    on a two-crate workspace, not on a large one in daily use.
