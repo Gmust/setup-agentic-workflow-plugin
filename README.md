@@ -9,8 +9,9 @@
 A plugin that prepares a repository for coding agents — scoped instructions,
 one trustworthy check command, a living handoff, optional CI — and then keeps
 that handoff in the agent's context across long sessions. Four skills plus
-three hooks. Single-project repositories and monorepos. Also ships
-`/dual-review`, a two-reviewer consensus code review.
+three hooks. Single-project repositories and monorepos. The same marketplace
+has [`dual-review`](plugins/dual-review/README.md), a separate two-reviewer
+consensus code review that setup recommends but never installs.
 
 It sets up the workflow. It does not implement product features, scaffold a
 stack you have not chosen, or weaken your existing checks to make setup pass.
@@ -24,7 +25,8 @@ stack you have not chosen, or weaken your existing checks to make setup pass.
 | Agent entry points | `AGENTS.md`, `CLAUDE.md` (or `.claude/CLAUDE.md`) | Shared rules once, imported rather than duplicated |
 | Per-project instructions | `<project>/AGENTS.md`, plus `<project>/CLAUDE.md` holding `@AGENTS.md` for Claude | In a monorepo, only what differs from the root |
 | Code and document map | inside `AGENTS.md` | Real entry points, ownership boundaries, which check covers what, one design source per UI project |
-| Boundaries | inside `AGENTS.md` | Real paths not to edit without asking — secrets, generated output, lockfiles, migrations, infra — and shared contracts with their owner and consumers |
+| Boundaries | inside `AGENTS.md` | Real paths not to edit without asking — secrets, generated output, lockfiles, migrations, CI workflows, infra — paths that always need a human reviewer, and shared contracts with their owner and consumers |
+| Review instructions | `REVIEW.md`, `.github/pull_request_template.md` | Only when the team uses AI review (Claude Code's Code Review or `/dual-review`): what counts as Important here, what not to report, what to always check — from this repository's facts, never a generic checklist. The PR template asks for Testing, Risk and How to revert |
 | Handoff | `docs/HANDOFF.yaml` | Living snapshot: goal, done, wip, blocked, next, decisions — ~40 lines, refs not content |
 | Quality gate | your repository's own runner | One command that terminates and fails loudly |
 | CI | your existing provider | Calls the same command, on the platforms you claim to support |
@@ -37,7 +39,7 @@ already-configured repository makes no changes.
 | Skill | Does | Standalone trigger |
 | --- | --- | --- |
 | `setup-agentic-workflow` | Inspects once, asks once, runs the three parts in order, validates | "prepare this repo for agents" |
-| `agent-entrypoints` | `AGENTS.md`, `CLAUDE.md` (+`@AGENTS.md`), monorepo per-project files, boundaries, code map incl. design source of truth | "add AGENTS.md", "de-duplicate CLAUDE.md" |
+| `agent-entrypoints` | `AGENTS.md`, `CLAUDE.md` (+`@AGENTS.md`), monorepo per-project files, boundaries, code map incl. design source of truth; `REVIEW.md` and PR template when AI review is used | "add AGENTS.md", "de-duplicate CLAUDE.md", "add REVIEW.md" |
 | `quality-gate` | One check command; CI on it. Never narrows an existing script | "set up checks", "add CI for agents" |
 | `handoff` | `/handoff [note]` refreshes `docs/HANDOFF.yaml`; first run adds the rule and optional hooks | "save progress", "snapshot state" |
 
@@ -46,14 +48,15 @@ inspection costs no tool calls, and pre-approves its bundled scripts.
 
 ## Code review
 
-`/dual-review [--staged | #PR | base] [--fix] [--rounds N] [--models a,b] [--] [focus]`
-— user-invoked only, Claude Code only. Two read-only reviewers (correctness &
-safety, design & robustness) review the change in parallel, each round in a
-fresh session, and re-review one numbered fix list until both agree; items that
-stall are handed to you with both arguments. `--fix` applies the agreed fixes,
-runs the `Checks` command from `AGENTS.md`, and has fresh reviewers verify until
-both approve. Nothing is committed. A full run can take ~14 reviewer sessions;
-`--rounds` caps it.
+A separate plugin, [`dual-review`](plugins/dual-review/README.md) — install it
+only if you want it. `/dual-review` is user-invoked, Claude Code only: two
+read-only reviewers review the change in parallel, each round in a fresh
+session, and re-review one numbered fix list until both agree. Depth follows
+the change's risk; risky changes add a security reviewer. Findings carry every
+instance of a bug class, pre-existing bugs are listed apart, and a root
+`REVIEW.md` overrides the defaults. `--fix` applies the agreed fixes and has
+fresh reviewers verify them. Nothing is committed. Also ships as a zip with
+`install.sh` / `install.ps1` for use without the plugin system.
 
 ## Context persistence
 
@@ -99,13 +102,15 @@ flowchart TD
 ```
 /plugin marketplace add Gmust/setup-agentic-workflow-plugin
 /plugin install setup-agentic-workflow@gmust-plugins
+/plugin install dual-review@gmust-plugins           # optional code review
 ```
 
 ### Claude Code — from a checkout
 
 ```sh
 git clone https://github.com/Gmust/setup-agentic-workflow-plugin
-claude --plugin-dir setup-agentic-workflow-plugin/plugins/setup-agentic-workflow
+claude --plugin-dir setup-agentic-workflow-plugin/plugins/setup-agentic-workflow \
+       --plugin-dir setup-agentic-workflow-plugin/plugins/dual-review
 ```
 
 Copying single skill folders into `~/.claude/skills/` is not supported any more:
@@ -138,7 +143,7 @@ Prepare this repository for working with coding agents.
 Add AGENTS.md and rules for agents here.
 Set up checks and a handoff for agentic work.
 /handoff finished the retry logic, tests green
-/dual-review main --fix
+/dual-review main --fix              # with the dual-review plugin
 ```
 
 It inspects the repository first, states the gaps and the files it proposes, and

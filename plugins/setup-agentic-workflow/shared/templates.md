@@ -35,11 +35,16 @@ the link breaks when a package moves:
 - Confirm before any destructive action.
 - State expected evidence before implementing.
 - Keep changes focused on the requested scope.
+- When review or an incident misses a bug, also add what the reviewer lacked:
+  a rule here [or in REVIEW.md, if it exists], or a new check.
 
 ## Boundaries
 Do not edit without asking: [this repository's actual secrets and env files,
-generated output, lockfiles, vendored code, migrations, infra/deploy and
-production config paths].
+generated output, lockfiles, vendored code, migrations, CI workflows,
+infra/deploy and production config paths].
+Human review required: [paths where a mistake costs most here, e.g. auth,
+billing, CI and release workflows, installers or updaters]. An agent's or AI
+reviewer's approval does not count for these.
 Shared contracts (omit when none): [OpenAPI / proto / schema / shared types
 path] — owned by [project], used by [projects]. Before changing one, ask and
 name every consumer it affects.
@@ -81,6 +86,68 @@ For an existing `.claude/CLAUDE.md`, the import is `@../AGENTS.md`.
 
 Per-project `CLAUDE.md` (monorepo, Claude target): `@AGENTS.md` only, importing
 that project's own file. Root rules already load from the parent directory.
+
+## Root `REVIEW.md` (only when the team uses AI review)
+
+Read by Claude Code's Code Review (repository root only) and by `/dual-review`.
+Only rules that change review behavior; project context stays in AGENTS.md.
+Under ~40 lines: length dilutes the rules that matter. Every line must be true
+of this repository: no rule the check command already enforces, no path that
+does not exist, no generic stack checklist. A rule a linter can enforce belongs
+in lint config instead. In a monorepo, add a `## <project path>` section only
+for a project with its own rules.
+
+```markdown
+# Review instructions
+
+## What Important means here
+[The failures that cost most in this repository, e.g. wrong results from
+<core module>, data crossing <trust boundary>, migrations that block rollback.]
+Style, naming and refactoring are Nit at most.
+
+## Do not report
+- Anything `[check command]` already enforces: [lint, format, types].
+- [Generated, vendored and lockfile paths that exist here.]
+
+## Always check
+- [Repository rule no linter can enforce, tied to a path that exists.]
+- Changes under [Human review required paths from AGENTS.md]: say in the
+  summary that a person must review them.
+
+## Evidence and reporting
+- Behavior claims cite `path:line` and a concrete scenario, never a guess
+  from a name.
+- Flag the class of a bug: list every instance, not only the first.
+- Mark bugs this change did not introduce as Pre-existing.
+- At most five Nits; count the rest in the summary.
+- After the first review, report Important findings only.
+- Open the summary with the count of findings by severity, or with
+  "No blocking issues."
+```
+
+## `.github/pull_request_template.md` (GitHub, none present)
+
+Look for an existing template first (`.github/`, `.github/PULL_REQUEST_TEMPLATE/`,
+`docs/`, repository root); add missing sections to it only if the user agrees.
+
+```markdown
+## What and why
+[One or two lines; link the issue.]
+
+## Testing
+[Commands run and their result; screenshots for UI. "Not run: <why>" is an answer.]
+
+## Risk
+[What could break, who would notice, and which Human review required paths it touches.]
+
+## How to revert
+[Revert the commit, turn off the flag, or roll back the migration; or why it cannot be undone.]
+```
+
+`CODEOWNERS` for the Human review required paths only with owner handles the
+user gives; never invent them. Branch protection (required reviews, dismissing
+approvals on new commits) is a repository setting: recommend it in the report,
+do not apply it.
 
 ## `docs/HANDOFF.yaml`
 
