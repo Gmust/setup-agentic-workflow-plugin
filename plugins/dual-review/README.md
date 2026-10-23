@@ -99,8 +99,9 @@ A personal install (`~/.claude/skills/dual-review`) shadows the plugin: bare
   name like `fix/2722-…`) and commit subjects. Reviewers check that the change
   does what it claims, and for a bug fix that it removes the root cause rather
   than hiding the symptom.
-- **Rules**: `CLAUDE.md` always; `REVIEW.md` at the repo root if present
-  (severity, paths to skip, checks to always run).
+- **Rules**: `CLAUDE.md` always; the root `AGENTS.md` and the nearest one
+  above each changed file, even without a `CLAUDE.md` import; `REVIEW.md` at
+  the repo root if present (severity, paths to skip, checks to always run).
 - **Depth**, picked from what the change touches:
 
   | Depth | When | Rounds |

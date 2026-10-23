@@ -36,8 +36,11 @@ checking it against the source.
   `path:line` citation and a concrete scenario (input, call sequence, state)
   that shows the problem, or shows why the claimed problem cannot happen.
   Inferences from names or comments are not evidence.
-- If SCOPE lists review rules (REVIEW.md), read them first. They override the
-  defaults below on severity, paths to skip and checks to always run.
+- Read every file SCOPE lists under review rules before reviewing. REVIEW.md
+  overrides the defaults below on severity, paths to skip and checks to
+  always run. Each AGENTS.md holds the project's rules and boundaries for the
+  files under its directory; a change that breaks one is a finding, cited by
+  the AGENTS.md line.
 
 ## Before you look for bugs
 
@@ -84,7 +87,7 @@ class once, not once per line.
 
 Judge each file by how that kind of file fails:
 - Code: wrong result, crash, leak, race, security hole on a reachable path.
-- Docs, README, CLAUDE.md, comments: it lies. Every factual claim (command,
+- Docs, README, AGENTS.md, CLAUDE.md, comments: it lies. Every factual claim (command,
   flag, default, path, behavior) must match the code; check each one.
 - Config, CI, infra: it misroutes. Wrong env, branch, trigger, secret, path or
   permission; a job that never runs or always runs.
@@ -97,7 +100,8 @@ Also check: edge cases (empty, null/None, zero, max, unicode, time zones,
 off-by-one), error propagation, concurrency and ordering, security
 (injection, authz, secrets, unsafe deserialization, trust boundaries),
 resource leaks, API and type contracts, backward compatibility, and the
-project's own rules (CLAUDE.md, lint config, patterns in neighbouring code).
+project's own rules (AGENTS.md, CLAUDE.md, lint config, patterns in
+neighbouring code).
 
 Language idioms, for example:
 - Rust: `unwrap`/`expect`/indexing that can panic outside tests, integer
@@ -174,7 +178,7 @@ FINDING <A1|B1|S1>
   problem: <one or two sentences>
   evidence: <concrete scenario + the code that makes it happen>
   fix: <the specific change covering every instance; a short sketch if it helps>
-  prevent: <optional: a lint rule, test or CLAUDE.md/REVIEW.md line that would stop this class recurring>
+  prevent: <optional: a lint rule, test or AGENTS.md/CLAUDE.md/REVIEW.md line that would stop this class recurring>
   confidence: <high|medium>
 
 (repeat FINDING blocks; drop anything you would rate low confidence)

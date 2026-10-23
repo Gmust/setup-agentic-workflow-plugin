@@ -7,6 +7,7 @@ done:
   - installers back up to .claude/backups/, not beside the originals: a skills/<name>.bak folder still loaded as a second, stale skill — install.sh tested (repeat, --project, --uninstall, path with spaces); install.ps1 not run (no pwsh)
   - scenarios Review instructions, No AI review, PR template — observed in fresh headless sessions on disposable Node repos; all three matched
   - dual-review (merged) observed on a planted-bug branch with `-- <focus>`: deep + S, bug class with both instances, weak test, intent gap, stale AGENTS.md claim, pre-existing apart; consensus in 3 rounds
+  - Codex P1 on PR #3 fixed — reviewers read the root and nearest AGENTS.md even without a CLAUDE.md import; scenario "AGENTS.md only" observed: finding cites the AGENTS.md rule, consensus in 1 round
 wip: null
 blocked: null
 next: run the dual-review Fix and verify and Stale PR base scenarios against plugins/dual-review
@@ -19,7 +20,7 @@ decisions:
 refs: [plugins/setup-agentic-workflow/shared/templates.md, plugins/dual-review/skills/dual-review/SKILL.md, plugins/dual-review/evaluation.md]
 checks:
   gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
-  last: pass (28 tests, hooks OK, compileall, claude plugin validate x3, validate_setup root + dual-review, install.sh smoke) 2026-10-22
+  last: pass (28 tests, hooks OK, claude plugin validate dual-review) 2026-10-23
 platforms: [macOS local]
 limitations:
   - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"

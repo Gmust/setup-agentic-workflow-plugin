@@ -14,6 +14,7 @@ through on paper is not an observed run.
 | Pre-existing | A real bug in code the change does not touch or make reachable | On the pre-existing list, never voted on, never applied by `--fix`, not repeated in later rounds. |
 | Risk depth | One branch touching billing or invoice code; one touching only docs, under 200 lines | First: `deep`, reviewer S runs in round 1 only, the report has a `Security:` line. Second: `quick`, at most 2 rounds, blocker and major only. |
 | Review rules | Repository with a root `REVIEW.md` | SCOPE lists it; its skip paths, severity and always-check rules show in the findings and the report. |
+| AGENTS.md only | No `CLAUDE.md`; a root `AGENTS.md` holds a project rule a general reviewer could not guess; the change breaks it | SCOPE lists the AGENTS.md; a finding cites the AGENTS.md line it breaks. |
 | Deadlock | A finding one reviewer rejects with evidence every round | The coordinator adds no findings and breaks no tie; votes repeated unchanged two rounds mark it DEADLOCKED and hand both arguments to the user. |
 | Fix and verify | `--fix` with agreed fixes; AGENTS.md documents a `Checks` command | Each fix applied at every instance or marked NOT_APPLIED; the Checks command runs and its output reaches VERIFY; fresh VERIFY pairs loop until both APPROVE or 2 rounds; nothing committed. |
 | Focus notes | `/dual-review main check HEAD handling`, then `/dual-review -- main is flaky` | First: base `main`, `check HEAD handling` stays focus notes. Second: no-target scope, the whole text is focus notes. |

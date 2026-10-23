@@ -106,8 +106,10 @@ Quote, don't paraphrase: titles, plus up to 15 lines from the PR body and
 the issue, acceptance criteria first. List the commands so reviewers can
 read the full text.
 
-**Review rules.** If `REVIEW.md` exists at the repo root, list it. (CLAUDE.md
-loads into every reviewer automatically.)
+**Review rules.** List `REVIEW.md` at the repo root if it exists, and every
+`AGENTS.md` that governs a changed file: the root one and the nearest one in
+a parent directory of each changed path. (CLAUDE.md loads into every reviewer
+automatically; AGENTS.md does not unless CLAUDE.md imports it.)
 
 **Depth.** Pick from what the change touches, not from who wrote it:
 - `deep`: auth/authz, payments or billing, keys, signing or crypto,
@@ -134,7 +136,7 @@ untracked files (read in full): <paths or none>
 depth: <quick|standard|deep> (<reason in a few words>) · security pass: <on|off>
 intent: <quoted titles/lines, or none found>
 intent sources: <commands, or none>
-review rules: <REVIEW.md or none>
+review rules: <REVIEW.md and AGENTS.md paths, or none>
 user focus notes: <text or none>
 ```
 
@@ -145,7 +147,8 @@ Lenses (both reviewers still report any blocker/major they see):
   concurrency, security, data integrity.
 - **B — design & robustness**: intent and approach, API/type contracts,
   backward compatibility, tests that actually exercise the change,
-  performance, maintainability, project conventions (CLAUDE.md, REVIEW.md).
+  performance, maintainability, project conventions (AGENTS.md, CLAUDE.md,
+  REVIEW.md).
 - **S — security** (round 1 only, when the security pass is on): a dedicated
   attacker's-eye pass. S finds; it never votes. Its findings are verified by
   fresh A and B like any other.
@@ -292,7 +295,7 @@ Scope: <diff command> · <files> files, +<adds>/−<dels>
 - path:line — <nit>
 
 ### Prevent recurrence
-- <lint rule / test / CLAUDE.md or REVIEW.md line> — would have caught F1, F3
+- <lint rule / test / AGENTS.md, CLAUDE.md or REVIEW.md line> — would have caught F1, F3
 ```
 
 Omit empty sections. If a blocker is deadlocked, or both reviewers raised an
