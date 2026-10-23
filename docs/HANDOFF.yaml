@@ -5,6 +5,7 @@ done:
   - Codex activation observed — codex-cli 0.160.0, throwaway HOME/CODEX_HOME, skills in the fixture's .agents/skills, request without the skill name; read all four SKILL.md + templates + both helpers, wrote AGENTS.md + handoff only (Codex-only, no AI review), gate pass, validator pass
   - dual-review observed — planted bugs (deep + S, bug-class instances, intent gap, stale AGENTS.md, pre-existing apart), `--` focus notes, AGENTS.md-only rules, --fix (applied, check ran, verify round 1 APPROVE, uncommitted), stale PR base (stopped before reviewers, offered fetch, did not fetch)
   - dual-review 2.2.1 — a finding one reviewer filed and the other only listed as a nit stays OPEN; the --fix run had the coordinator accept it on its own
+  - scenario Mixed finding and nit (Codex P1 on PR #4) — rerun on the same fixture: F2 went to a round-2 vote and was ACCEPTED there (consensus in 2 rounds, was 1); the report does not show whether the other reviewer had it as a nit or not at all
 wip: null
 blocked: null
 next: run the setup Monorepo scenario on a real multi-package repository and record per-package results
