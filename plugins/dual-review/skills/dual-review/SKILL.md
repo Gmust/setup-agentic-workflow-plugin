@@ -185,7 +185,8 @@ minor:
 - Found by two with conflicting fixes → **OPEN** with fix variants
   `(a)` and `(b)`.
 - Found by one → **OPEN**. Only A and B vote in later rounds, so an item from
-  S alone always goes to a vote.
+  S alone always goes to a vote. A finding from one reviewer that the other
+  only listed as a nit is still found by one: OPEN, never ACCEPTED by you.
 - Nits → a deduplicated nit list. Nits are never voted on and never block.
 - Exception: A and B left nits on the same lines that read the code or text
   in conflicting ways, or propose contradictory changes. Two reviewers

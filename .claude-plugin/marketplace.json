@@ -5,7 +5,7 @@
     "url": "https://github.com/Gmust"
   },
   "description": "Plugins for setting up agent-friendly repositories.",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "plugins": [
     {
       "name": "setup-agentic-workflow",

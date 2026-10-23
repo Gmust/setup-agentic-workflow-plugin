@@ -1,29 +1,28 @@
-goal: v2.2 — REVIEW.md and review entry points in setup; dual-review split into its own plugin
+goal: v2.2 released (setup 2.2.0, dual-review 2.2.1); every listed scenario observed at least once
 done:
-  - REVIEW.md + PR template skeletons, Human review required boundary, review-miss rule — shared/templates.md, agent-entrypoints, orchestrator question
-  - setup recommends dual-review (plugin or install.sh), never installs it — orchestrator report step
-  - plugins/dual-review/ — skill + agent moved out; archive rewrite (intent, depth, security pass S, bug-class instances, pre-existing list, REVIEW.md) 3-way merged with the 2.1 fixes (--, stale baseRefOid, untracked scopes, split verify)
-  - dual-review AGENTS.md, evaluation.md (moved + new scenarios), README, install.sh/.ps1; marketplace + both plugin.json at 2.2.0
-  - installers back up to .claude/backups/, not beside the originals: a skills/<name>.bak folder still loaded as a second, stale skill — install.sh tested (repeat, --project, --uninstall, path with spaces); install.ps1 not run (no pwsh)
-  - scenarios Review instructions, No AI review, PR template — observed in fresh headless sessions on disposable Node repos; all three matched
-  - dual-review (merged) observed on a planted-bug branch with `-- <focus>`: deep + S, bug class with both instances, weak test, intent gap, stale AGENTS.md claim, pre-existing apart; consensus in 3 rounds
-  - Codex P1 on PR #3 fixed — reviewers read the root and nearest AGENTS.md even without a CLAUDE.md import; scenario "AGENTS.md only" observed: finding cites the AGENTS.md rule, consensus in 1 round
+  - v2.2.0 tagged and released (PR #3); merged branches deleted, delete_branch_on_merge on
+  - setup REVIEW.md scenarios (Review instructions, No AI review, PR template) observed in headless claude -p on disposable Node repos; repeat run changed only a newly verified handoff fact
+  - Codex activation observed — codex-cli 0.160.0, throwaway HOME/CODEX_HOME, skills in the fixture's .agents/skills, request without the skill name; read all four SKILL.md + templates + both helpers, wrote AGENTS.md + handoff only (Codex-only, no AI review), gate pass, validator pass
+  - dual-review observed — planted bugs (deep + S, bug-class instances, intent gap, stale AGENTS.md, pre-existing apart), `--` focus notes, AGENTS.md-only rules, --fix (applied, check ran, verify round 1 APPROVE, uncommitted), stale PR base (stopped before reviewers, offered fetch, did not fetch)
+  - dual-review 2.2.1 — a finding one reviewer filed and the other only listed as a nit stays OPEN; the --fix run had the coordinator accept it on its own
+  - scenario Mixed finding and nit (Codex P1 on PR #4) — rerun on the same fixture: F2 went to a round-2 vote and was ACCEPTED there (consensus in 2 rounds, was 1); the report does not show whether the other reviewer had it as a nit or not at all
 wip: null
 blocked: null
-next: run the dual-review Fix and verify and Stale PR base scenarios against plugins/dual-review
+next: run the setup Monorepo scenario on a real multi-package repository and record per-package results
 decisions:
   - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
   - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
   - PreCompact not used — cannot make the model write; counter bounds staleness
   - dual-review is a separate plugin, recommended by setup (owner's call, reverses the 2.1 decision); one folder serves plugin and zip installs
   - REVIEW.md only when the team uses AI review; facts from the repo, never a stack checklist (code.claude.com/docs/en/code-review)
-refs: [plugins/setup-agentic-workflow/shared/templates.md, plugins/dual-review/skills/dual-review/SKILL.md, plugins/dual-review/evaluation.md]
+  - stale-base check compares baseRefOid with origin/<base>: GitHub moves baseRefOid when the head is pushed, not when the base advances, which is the case that matters
+refs: [plugins/dual-review/evaluation.md, plugins/setup-agentic-workflow/shared/evaluation.md, README.md#feedback-wanted]
 checks:
   gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
   last: pass (28 tests, hooks OK, claude plugin validate dual-review) 2026-10-23
-platforms: [macOS local]
+platforms: [macOS local, CI ubuntu/macos/windows]
 limitations:
   - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"
-  - Codex never observed loading any of the skills
-  - dual-review --fix / VERIFY and the stale-base path not yet observed after the merge
+  - Codex observed once on a constructed fixture, not in daily use; Codex reads skills from .agents/skills, not via the plugin
+  - install.ps1 never run (no pwsh on the dev machine)
   - hooks watch one HANDOFF_FILE; per-project handoffs in a monorepo are not followed

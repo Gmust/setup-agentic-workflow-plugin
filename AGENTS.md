@@ -91,8 +91,11 @@ Windows against Python 3.10 and 3.13, plus a `compileall` pass.
 
 Not covered by any automated check: whether the skill actually activates from a
 natural request, whether Codex loads it, and every scenario in
-`shared/evaluation.md`. Those are exercised by hand in disposable
-repositories, and the result belongs in the handoff.
+`shared/evaluation.md` and `plugins/dual-review/evaluation.md`. Those are
+exercised by hand in disposable repositories — headless `claude -p` with only
+these plugins via `--plugin-dir` and `--setting-sources project,local`, and
+`codex exec` with a throwaway `HOME`/`CODEX_HOME` and the skills in the
+fixture's `.agents/skills/` — and the result belongs in the handoff.
 
 ## Handoff
 
