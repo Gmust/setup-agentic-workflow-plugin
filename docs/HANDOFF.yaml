@@ -8,6 +8,7 @@ done:
   - Roadmap pass (3 milestones exact, order kept, one `now`, linked as plan below code); OpenSpec pass (config.yaml linked not restated, milestone 1 links add-csv-export); Existing roadmap pass (not rewritten, linked as plan, no question)
   - No roadmap v1 fail (no file, but a "roadmap requested, none yet" entry in AGENTS.md source of truth); wording tightened; rerun pass — no file, no mention in AGENTS.md, report says so
   - Roadmap repeat run (fresh session, same answers, fixture committed) — ROADMAP.md and roadmap lines in AGENTS.md byte-identical; it did change the gate (see limitations)
+  - removed stale skills/setup-agentic-workflow/{scripts,tests}/ copies (owner approved); nothing referenced them, CI and installs use shared/
 wip: null
 blocked: null
 next: run the setup Monorepo scenario on a real multi-package repository and record per-package results
@@ -33,4 +34,3 @@ limitations:
   - Monorepo scenario not yet run on a real multi-package repository
   - repeat run is not byte-stable when run 1 leaves a known gate gap: run 1 authored `check` yet left `node --check a b` covering only a; run 2 added a step and `engines` (quality-gate, predates this branch)
   - headless -p cannot ask; the roadmap question was observed only with an ask-first prompt
-  - skills/setup-agentic-workflow/{scripts,tests}/ are stale tracked copies of shared/ (inspect_repo.py lacks HANDOFF.yaml); untouched, owner to decide
