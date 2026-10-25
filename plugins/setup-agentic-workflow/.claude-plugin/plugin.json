@@ -1,8 +1,8 @@
 {
   "name": "setup-agentic-workflow",
   "displayName": "Setup Agentic Workflow",
-  "version": "2.2.0",
-  "description": "Set up a repository so coding agents work safely in it — AGENTS.md/CLAUDE.md entry points, code map, boundaries and human-review paths, REVIEW.md and a PR template when the team uses AI review, one shared check command, living docs/HANDOFF.yaml, optional CI — as four skills (orchestrator, agent-entrypoints, quality-gate, handoff) plus hooks that re-inject the handoff after compaction and keep it fresh. For Claude Code and Codex, single repos and monorepos. Not for implementing product features. Code review lives in the separate dual-review plugin.",
+  "version": "2.3.0",
+  "description": "Set up a repository so coding agents work safely in it — AGENTS.md/CLAUDE.md entry points, code map, boundaries and human-review paths, REVIEW.md and a PR template when the team uses AI review, an optional ROADMAP.md from your milestones, one shared check command, living docs/HANDOFF.yaml, optional CI — as four skills (orchestrator, agent-entrypoints, quality-gate, handoff) plus hooks that re-inject the handoff after compaction and keep it fresh. For Claude Code and Codex, single repos and monorepos. Not for implementing product features. Code review lives in the separate dual-review plugin.",
   "author": {
     "name": "Gmust",
     "url": "https://github.com/Gmust"
