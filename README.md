@@ -24,7 +24,8 @@ stack you have not chosen, or weaken your existing checks to make setup pass.
 | --- | --- | --- |
 | Agent entry points | `AGENTS.md`, `CLAUDE.md` (or `.claude/CLAUDE.md`) | Shared rules once, imported rather than duplicated |
 | Per-project instructions | `<project>/AGENTS.md`, plus `<project>/CLAUDE.md` holding `@AGENTS.md` for Claude | In a monorepo, only what differs from the root |
-| Code and document map | inside `AGENTS.md` | Real entry points, ownership boundaries, which check covers what, one design source per UI project |
+| Code and document map | inside `AGENTS.md` | Real entry points, ownership boundaries, which check covers what, one design source per UI project; a spec framework already in use (OpenSpec) is linked, never copied |
+| Roadmap | `ROADMAP.md` | Only when you want one (setup asks): the milestones you name, in your order, each with a done-when, plus what is not planned. Agents work toward the current one and change only its status |
 | Boundaries | inside `AGENTS.md` | Real paths not to edit without asking — secrets, generated output, lockfiles, migrations, CI workflows, infra — paths that always need a human reviewer, and shared contracts with their owner and consumers |
 | Review instructions | `REVIEW.md`, `.github/pull_request_template.md` | Only when the team uses AI review (Claude Code's Code Review or `/dual-review`): what counts as Important here, what not to report, what to always check — from this repository's facts, never a generic checklist. The PR template asks for Testing, Risk and How to revert |
 | Handoff | `docs/HANDOFF.yaml` | Living snapshot: goal, done, wip, blocked, next, decisions — ~40 lines, refs not content |
@@ -39,7 +40,7 @@ already-configured repository makes no changes.
 | Skill | Does | Standalone trigger |
 | --- | --- | --- |
 | `setup-agentic-workflow` | Inspects once, asks once, runs the three parts in order, validates | "prepare this repo for agents" |
-| `agent-entrypoints` | `AGENTS.md`, `CLAUDE.md` (+`@AGENTS.md`), monorepo per-project files, boundaries, code map incl. design source of truth; `REVIEW.md` and PR template when AI review is used | "add AGENTS.md", "de-duplicate CLAUDE.md", "add REVIEW.md" |
+| `agent-entrypoints` | `AGENTS.md`, `CLAUDE.md` (+`@AGENTS.md`), monorepo per-project files, boundaries, code map incl. design source of truth and OpenSpec; `ROADMAP.md` on request; `REVIEW.md` and PR template when AI review is used | "add AGENTS.md", "de-duplicate CLAUDE.md", "add REVIEW.md" |
 | `quality-gate` | One check command; CI on it. Never narrows an existing script | "set up checks", "add CI for agents" |
 | `handoff` | `/handoff [note]` refreshes `docs/HANDOFF.yaml`; first run adds the rule and optional hooks | "save progress", "snapshot state" |
 
@@ -164,7 +165,8 @@ This is the part that distinguishes it from "generate me an AGENTS.md":
 - **It will not write "tested"** about something it did not run. Checks it could
   not execute are recorded as not run, with the reason.
 - **It will not scaffold a product** for an empty repository, or invent a spec,
-  an architecture, or a precedence between conflicting documents.
+  an architecture, a roadmap milestone, or a precedence between conflicting
+  documents.
 - **It will not touch your personal setup** — no installing skills, hooks or MCP
   servers as a side effect of repository setup.
 - **It changes nothing on a repeat run** when the requested setup is already

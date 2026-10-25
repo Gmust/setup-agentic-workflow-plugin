@@ -14,7 +14,8 @@ already has a working arrangement.
 [What the product does. What is explicitly out of scope.]
 
 ## Source of truth
-[Ordered list: which document wins when two disagree. Mark plans as plans.
+[Ordered list: which document wins when two disagree. Mark plans as plans
+(a roadmap, proposed changes); they rank below specs and code.
 For UI: the design source (Figma URL / DESIGN.md / tokens) and whether code
 or design wins on conflict.]
 
@@ -149,12 +150,36 @@ user gives; never invent them. Branch protection (required reviews, dismissing
 approvals on new commits) is a repository setting: recommend it in the report,
 do not apply it.
 
+## `ROADMAP.md` (only when the user wants one)
+
+Only the milestones the user names, in their order: nothing invented, split,
+reordered or estimated. Under ~40 lines; detail lives in the specs and issues
+it links. The owner changes scope and order; an agent changes only Status, and
+only once a milestone's Done when is verified.
+
+```markdown
+# Roadmap
+
+A plan, not a spec: [code / specs path] wins on conflict. Work toward the
+milestone marked `now`; later ones only when asked.
+
+| # | Milestone | Done when | Status | Spec |
+| --- | --- | --- | --- | --- |
+| 1 | [goal, one line] | [observable exit: a check, a demo, a metric] | [done / now / next / later] | [openspec/changes/<id> or issue; drop the column when none] |
+
+## Not planned
+[What the owner ruled out, so agents do not build it.]
+
+## Open questions
+[Undecided items blocking a milestone; omit when none.]
+```
+
 ## `docs/HANDOFF.yaml`
 
 Snapshot, not log. Terse values, references not content, hard cap ~40 lines.
 
 ```yaml
-goal: [one line: what this stretch of work delivers]
+goal: [one line: what this stretch of work delivers; its ROADMAP.md milestone, if any]
 done:
   - [sha or path] [one line, with evidence: test name / check passed]
 wip: [what is half-done, where — path:line, what is red]

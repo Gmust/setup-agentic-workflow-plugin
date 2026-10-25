@@ -1,6 +1,6 @@
 ---
 name: agent-entrypoints
-description: "Add or standardize agent instruction files: root AGENTS.md and CLAUDE.md with @AGENTS.md import, per-project AGENTS.md in monorepos (plus a CLAUDE.md importing it for Claude), the working agreement, boundaries (do-not-touch paths, human-review paths, shared contracts), a code and document map that links requirements, architecture, ADRs and the design source of truth (Figma, DESIGN.md, tokens), and review entry points (REVIEW.md, PR template) when the team uses AI review. Use when a repo needs AGENTS.md, CLAUDE.md or REVIEW.md created, merged, or de-duplicated, or when the code map is missing or stale. Does not touch checks, CI, or the handoff."
+description: "Add or standardize agent instruction files: root AGENTS.md and CLAUDE.md with @AGENTS.md import, per-project AGENTS.md in monorepos (plus a CLAUDE.md importing it for Claude), the working agreement, boundaries (do-not-touch paths, human-review paths, shared contracts), a code and document map that links requirements, architecture, ADRs, an existing spec framework (OpenSpec) and the design source of truth (Figma, DESIGN.md, tokens), an optional ROADMAP.md holding only the milestones the user names, and review entry points (REVIEW.md, PR template) when the team uses AI review. Use when a repo needs AGENTS.md, CLAUDE.md or REVIEW.md created, merged, or de-duplicated, or when the code map is missing or stale. Does not touch checks, CI, or the handoff."
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/shared/scripts/*), Bash(git status *), Bash(git log *), Bash(git diff *)
 ---
 
@@ -11,6 +11,7 @@ allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/shared/scripts/*), Bash(git st
 Files: !`ls AGENTS.md CLAUDE.md .claude/CLAUDE.md REVIEW.md .github/pull_request_template.md .github/CODEOWNERS CODEOWNERS 2>/dev/null || echo none`
 Root AGENTS.md head: !`head -40 AGENTS.md 2>/dev/null`
 Root CLAUDE.md head: !`head -20 CLAUDE.md .claude/CLAUDE.md 2>/dev/null`
+Roadmap and specs: !`ls -d ROADMAP.md docs/ROADMAP.md openspec 2>/dev/null | grep . || echo none`
 Monorepo markers: !`ls pnpm-workspace.yaml go.work turbo.json nx.json MODULE.bazel settings.gradle 2>/dev/null; jq -c .workspaces package.json 2>/dev/null; grep -l '^\[workspace\]' Cargo.toml 2>/dev/null`
 
 Owns `AGENTS.md`, `CLAUDE.md`, per-project instructions, the working agreement
@@ -23,8 +24,9 @@ the repository shape (single project, monorepo, or a folder of separate repos â€
 see [setup-agentic-workflow](../setup-agentic-workflow/SKILL.md)), and state gaps
 and proposed edits before writing. Never delete files, discard user changes, or
 replace existing instructions wholesale; merge, and ask only when a conflict
-requires removing a user rule. Ask for the intended agents (Codex, Claude, both)
-and, for a UI product, the design source of truth if not inferable.
+requires removing a user rule. Ask for the intended agents (Codex, Claude, both),
+for a UI product the design source of truth if not inferable, and, when no
+roadmap exists, whether agents get one.
 
 - **Agent entry points:** Codex uses root `AGENTS.md`; Claude uses root
   `CLAUDE.md` or existing `.claude/CLAUDE.md`. For both agents, prefer shared
@@ -68,11 +70,24 @@ and, for a UI product, the design source of truth if not inferable.
   checks by task when those documents exist. Label plans and unresolved decisions.
   Add a short missing section only when useful; do not fabricate a full spec,
   architecture, or precedence between conflicting documents.
+  A spec framework already in use owns its content. With OpenSpec, link
+  `openspec/config.yaml` context (or the older `openspec/project.md`) for stack
+  and conventions, `openspec/specs/` as current behavior and
+  `openspec/changes/` as plans; never restate that stack or those conventions
+  in `AGENTS.md`, since two copies drift.
   For a UI product, link the design source of truth (Figma URL, `DESIGN.md`,
   tokens, Storybook) in the source-of-truth order and the map, stating whether
   code or design wins on conflict; in a monorepo, one per UI project when they
   differ (web, mobile, desktop and admin apps often do). Do not generate
   tokens or specs.
+- **Roadmap:** Only when the user wants one; ask when none exists. Root
+  `ROADMAP.md` holds the milestones the user names, in their order, each with
+  an observable done-when, plus what is not planned. Never invent, split,
+  reorder or estimate milestones. Without them, create no file and no roadmap
+  entry in `AGENTS.md`; say so in the report. Link it in the
+  source-of-truth order as a plan below specs and code, and link each
+  milestone to its spec (an OpenSpec change, an issue) when one exists. An
+  existing roadmap is linked, not rewritten.
 - **Review entry points:** Only when the team uses AI review (Claude Code's
   Code Review, `/dual-review`); ask if not inferable. Root `REVIEW.md` from
   facts already gathered: what Important means from the mission and

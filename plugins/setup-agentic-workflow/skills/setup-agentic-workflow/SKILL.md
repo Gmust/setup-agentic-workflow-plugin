@@ -13,6 +13,7 @@ Orchestrator. Inspect once, ask once, then run the part skills in order:
 ## Repository inventory (generated now)
 
 Existing agent files: !`ls AGENTS.md CLAUDE.md .claude/CLAUDE.md REVIEW.md docs/HANDOFF.yaml 2>/dev/null || echo none`
+Roadmap and specs: !`ls -d ROADMAP.md docs/ROADMAP.md openspec 2>/dev/null | grep . || echo none`
 Git: !`git log --oneline -5 2>/dev/null; git status --short 2>/dev/null | head -20`
 Inventory:
 !`python3 ${CLAUDE_PLUGIN_ROOT}/shared/scripts/inspect_repo.py . 2>&1 | head -80`
@@ -21,7 +22,8 @@ Inventory:
 ## Inspect and propose
 
 Read existing agent instructions and handoff, inspect the worktree including
-untracked work, and identify manifests, source entry points, checks, and CI.
+untracked work, and identify manifests, source entry points, checks, CI, and any
+roadmap or spec framework already in use.
 Use scoped source searches; distinguish implemented modules from planned ones.
 Establish the repository shape before proposing files. A root that is not itself
 a version-controlled repository, whose subdirectories each are, is neither one
@@ -60,6 +62,11 @@ Infer answers from the repository and conversation. Ask only unresolved question
 that affect the result, in a concise batch:
 
 - Product mission, current scope, and important exclusions.
+- Roadmap, when none exists: whether agents get a `ROADMAP.md`, and if so its
+  milestones in order, each with an observable done-when. Write only what the
+  user names. Without milestones, create no file and no roadmap entry in
+  `AGENTS.md`; say so in the report. An existing roadmap is linked, not asked
+  about.
 - Intended agents: Codex, Claude Code, or both. Do not infer the target solely
   from whichever agent is currently running the setup.
 - Supported platforms and desired automation (local checks, CI, or both).
@@ -87,7 +94,8 @@ re-inspect. Each part is idempotent and skips what is already correct.
 
 1. **agent-entrypoints** — `AGENTS.md`, `CLAUDE.md`, per-project files, working
    agreement, boundaries, code and document map (including the design source
-   of truth), and `REVIEW.md` and the PR template when AI review is used.
+   of truth and any spec framework), `ROADMAP.md` when the user wants one, and
+   `REVIEW.md` and the PR template when AI review is used.
 2. **quality-gate** — the single check command, and CI on it when requested.
 3. **handoff** — living `docs/HANDOFF.yaml`, the handoff rule, optional hooks.
 
