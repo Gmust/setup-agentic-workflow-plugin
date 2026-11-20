@@ -5,9 +5,10 @@ done:
   - T2 Codex install — codex plugin marketplace add (local path, Gmust/... shorthand) reads .claude-plugin/marketplace.json on codex-cli 0.160.0 and 0.171.0; plugin add caches the 4 skills byte-identical; codex exec lists setup-agentic-workflow:<skill>, a control home lists none
   - T3 Codex activation, codex-cli 0.171.0, skills in fixture .agents/skills — with --trust and with no trust entry the orchestrator SKILL.md was read, AGENTS.md, CLAUDE.md and a truthful handoff written, and the load-proof rollout holds the AGENTS.md instructions message; trust_level untrusted — skills listed, AGENTS.md not loaded
   - review fixes — 0.160.0 rejects --trust; --trust via /tmp wrote the /private/tmp key; Codex 0.171.0 with the plugin installed ran none of its manifest hooks (default or --dangerously-bypass-hook-trust) while user hooks.json did; Codex reports shell calls as tool_name Bash with tool_input.command; Codex reads !cmd lines as literal text
+  - T4 hooks on Codex (2.4.0) — hooks moved verbatim from plugin.json to hooks/hooks.json, scripts unchanged; codex 0.171.0 with --dangerously-bypass-hook-trust on the real source — handoff injected as developer context, counter 1 (apply_patch counted, shell reads not), Stop Blocked then Completed (empty pass output accepted); without bypass exec skips them silently; claude 2.1.329 — each hook once, Stop block then pass; test.sh covers apply_patch payloads and one hooks file
 wip: null
 blocked: null
-next: port handoff hooks to Codex — first find how Codex CLI loads plugin hooks (manifest hooks did not run on 0.171.0, docs say desktop only) without registering them twice in Claude Code; apply_patch matcher; Stop JSON pass path
+next: trust the plugin hooks once via /hooks in interactive codex 0.171.0 and confirm a plain codex exec then runs them without the bypass flag
 decisions:
   - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
   - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
@@ -17,6 +18,7 @@ decisions:
   - stale-base check compares baseRefOid with origin/<base> (GitHub moves baseRefOid on head push, not on base advance)
   - roadmap holds only milestones the user names; spec frameworks are linked, never restated
   - Stop gate blocks once per turn by design; not worked around in headless runs
+  - hooks live only in hooks/hooks.json — Claude Code and Codex both read it, Codex ignored the inline plugin.json hooks; test.sh fails on a second copy
   - a CLI flag seen on only some versions is documented with its version (--trust needs codex-cli 0.169.0+)
   - Codex load proof is a second codex exec plus the session rollout; --ask-for-approval is interactive-only on 0.171.0
 refs: [plugins/setup-agentic-workflow/shared/evaluation.md, README.md#context-persistence, README.md#codex--plugin, README.md#feedback-wanted]
@@ -26,7 +28,7 @@ checks:
 platforms: [macOS local, CI ubuntu/macos/windows]
 limitations:
   - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against Claude Code docs, not at runtime"
-  - Codex — plugin hooks not wired; ${CLAUDE_PLUGIN_ROOT} untested under the plugin route; desktop app untested
+  - Codex hooks seen only with --dangerously-bypass-hook-trust; /hooks trust flow, desktop app and ${CLAUDE_PLUGIN_ROOT} in skill bodies untested; Stop pass prints nothing although the doc asks for JSON
   - Codex activation run once per trust state on a constructed fixture, 0.171.0 only, skills from the fixture's .agents/skills, not the plugin route
   - hand-written trust_level = "trusted" (fallback for codex older than 0.169.0) untested on 0.160.0
   - install.ps1 never run (no pwsh on the dev machine)

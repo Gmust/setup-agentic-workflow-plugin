@@ -39,12 +39,15 @@ if any: $ARGUMENTS
   unless projects are released independently.
 - **Context persistence:** Long sessions lose context on compaction; the
   handoff is what survives. Add the living-handoff rule to the working
-  agreement (see [templates](../../shared/templates.md)). The `agentic-workflow` plugin ships hooks that
-  re-inject `docs/HANDOFF.yaml` after compaction, remind the agent every N
-  mutating tool calls, and refuse to end a turn while the tree is newer than
-  the handoff; they are personal and no-op without the file. Write the same
-  hooks into the repository's `.claude/settings.json` only when the user asks
-  for a team-wide setup without the plugin. Codex gets the rule only.
+  agreement (see [templates](../../shared/templates.md)). The `setup-agentic-workflow` plugin ships hooks
+  (`hooks/hooks.json`, read by Claude Code and Codex) that re-inject
+  `docs/HANDOFF.yaml` after compaction, remind the agent every N mutating tool
+  calls, and refuse once per turn to end while files changed this session are
+  newer than the handoff; they are personal and no-op without the file. Write
+  the same hooks into the repository's `.claude/settings.json` only when the
+  user asks for a team-wide setup without the plugin. Codex runs the plugin's
+  hooks once the user trusts them in `/hooks`; without the plugin, Codex gets
+  the rule only.
 
 Completion fields for a setup handoff: outcome; files/contracts changed; checks
 and results; platforms actually tested; remaining limitations; next bounded task.

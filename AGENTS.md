@@ -53,7 +53,7 @@ Never write to a path outside this repository as part of a change here.
 | Orchestrator | `.../skills/setup-agentic-workflow/SKILL.md` | Inspect once, ask once, run the parts, validate | behavioral scenarios, run by hand |
 | Part skills | `.../skills/{agent-entrypoints,quality-gate,handoff}/SKILL.md` | One artifact each; standalone and idempotent | behavioral scenarios, run by hand |
 | Review plugin | [plugins/dual-review](plugins/dual-review/AGENTS.md) | Coordinator and read-only reviewer: consensus rounds, risk-based depth, optional fix and verify | its `evaluation.md`, run by hand |
-| Hooks | `.../hooks/*.sh` | Re-inject handoff on SessionStart; remind every N mutating calls; block Stop once per turn while files changed this session are newer than the handoff, or it fails lint | `hooks/test.sh` |
+| Hooks | `.../hooks/hooks.json` (read by Claude Code and Codex), `.../hooks/*.sh` | Re-inject handoff on SessionStart; remind every N mutating calls; block Stop once per turn while files changed this session are newer than the handoff, or it fails lint | `hooks/test.sh` |
 | Templates | `.../shared/templates.md` | Skeletons the skills fill in, incl. `HANDOFF.yaml` and the living-handoff rule | none automated |
 | Scenarios | `.../shared/evaluation.md` | How a change is judged | run by hand in disposable repositories |
 | Inventory helper | `.../shared/scripts/inspect_repo.py` | Read-only repository inventory | `shared/tests/test_helpers.py` |

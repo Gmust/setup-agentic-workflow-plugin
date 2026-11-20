@@ -62,18 +62,21 @@ fresh reviewers verify them. Nothing is committed. Also ships as a zip with
 ## Context persistence
 
 Long sessions lose context on compaction; `docs/HANDOFF.yaml` is what survives.
-Three hooks, all no-op unless that file exists:
+Three hooks in the plugin's `hooks/hooks.json`, read by Claude Code and by Codex
+(see [Codex — plugin](#codex--plugin) for trusting them there), all no-op unless
+that file exists:
 
 | Hook | When | Does |
 | --- | --- | --- |
 | `handoff-inject.sh` | SessionStart (startup, resume, compact, clear) | Puts the handoff plus `git log -5` / `git status --short` back into context; flags lint problems |
-| `handoff-counter.sh` | PostToolUse | Every `HANDOFF_EVERY` (default 15) mutating calls — Edit/Write, or Bash that looks like a write — reminds the agent to refresh, with current git facts |
+| `handoff-counter.sh` | PostToolUse | Every `HANDOFF_EVERY` (default 15) mutating calls — Edit/Write, Codex `apply_patch`, or Bash that looks like a write — reminds the agent to refresh, with current git facts |
 | `handoff-stop.sh` | Stop | Refuses to end the turn while files changed this session are newer than the handoff, or `next` is empty, or the file exceeds 40 lines. Once per turn |
 
 `HANDOFF_FILE` overrides the path (repo-relative). Remove the Stop entry from
-`plugin.json` if the gate is too strict for your workflow. Without the plugin,
-`@docs/HANDOFF.yaml` in `CLAUDE.md` loads the snapshot at session start (re-read
-after compaction not guaranteed); Codex gets the rule in `AGENTS.md` only.
+`hooks/hooks.json` if the gate is too strict for your workflow. Without the
+plugin, `@docs/HANDOFF.yaml` in `CLAUDE.md` loads the snapshot at session start
+(re-read after compaction not guaranteed); Codex gets the rule in `AGENTS.md`
+only.
 
 Headless `claude -p` runs get the same gate (observed on 2.1.329): a blocked
 stop buys one more turn, then the run ends whether or not that turn updated the
@@ -120,7 +123,7 @@ claude --plugin-dir setup-agentic-workflow-plugin/plugins/setup-agentic-workflow
 
 Copying single skill folders into `~/.claude/skills/` is not supported any more:
 the skills reference `../../shared/` and `${CLAUDE_PLUGIN_ROOT}`, and the hooks
-live in `plugin.json`.
+live in the plugin's `hooks/hooks.json`.
 
 ### Codex — plugin
 
@@ -152,13 +155,17 @@ cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/shared ~/.age
 resolve; the plugin route keeps that layout. Two skill features are Claude Code
 only. Codex reads the `` !`cmd` `` state-injection lines as literal text
 (codex-cli 0.171.0; setup still completed in that run). Nothing sets
-`${CLAUDE_PLUGIN_ROOT}` for copied skills, and under the Codex plugin route it
-is untested. Codex has its own hook system, but this plugin's hooks are not
-wired up for it: on codex-cli 0.171.0 the hooks declared in
-`.claude-plugin/plugin.json` did not run, even with
-`--dangerously-bypass-hook-trust`, while user-level hooks in the same run did.
-Codex gets the handoff rule from `AGENTS.md` unless the project is marked
-untrusted.
+`${CLAUDE_PLUGIN_ROOT}` for copied skills; Codex sets it for plugin hook
+commands, and in skill bodies under the Codex plugin route it is untested.
+
+With the plugin route, Codex runs the same three hooks from `hooks/hooks.json`
+once you trust them: open `/hooks` in interactive `codex`, and again after an
+update changes a script. Until then `codex exec` skips them without a warning.
+Observed on codex-cli 0.171.0 with `--dangerously-bypass-hook-trust` in a
+disposable fixture: the handoff was injected at session start, `apply_patch`
+edits were counted and shell reads were not, and Stop blocked once, then passed.
+The `/hooks` trust step itself was not exercised. Codex gets the handoff rule
+from `AGENTS.md` unless the project is marked untrusted.
 Codex has been observed activating the skill on constructed fixtures with the
 four skills in the target repository's own `.agents/skills/` (not
 `~/.agents/skills/`, where the copy route puts them) and a request that did not
