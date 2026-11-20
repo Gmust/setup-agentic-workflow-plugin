@@ -33,6 +33,7 @@ instructions but no handoff fails its scenario, however good the instructions ar
 | No roadmap | Same repository; user declines, or wants one but names no milestones | No `ROADMAP.md`, no roadmap entry in AGENTS.md, no placeholder milestones; the report says none was created. |
 | Existing roadmap | Repository with a `ROADMAP.md` | Linked as a plan in source-of-truth order; the roadmap question is not asked; the file is not rewritten. |
 | OpenSpec | `openspec/config.yaml` whose context names the stack and conventions, plus `specs/` and `changes/`; no roadmap | AGENTS.md links `openspec/` in source-of-truth order, `specs/` as current and `changes/` as plans, and does not restate the stack or conventions; the roadmap question is still asked; given milestones, each links its matching change. |
+| Headless Stop gate | Git fixture with a valid `docs/HANDOFF.yaml`; `claude -p` with only this plugin (`--plugin-dir`, `--setting-sources project,local`, stream-json with `--include-hook-events`) asked to change a tracked file and to edit nothing else | The Stop hook runs and returns `decision: block`; the run continues exactly one more turn, the second Stop passes on `stop_hook_active`, and the run ends. Told to edit nothing else, the agent explains and leaves the handoff stale; without that restriction the extra turn fixes the handoff. |
 
 Also exercise nested `.claude/CLAUDE.md`, missing local links, import cycles,
 external symlinks, links inside fenced and indented code blocks, and

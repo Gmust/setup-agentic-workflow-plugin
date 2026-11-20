@@ -75,6 +75,10 @@ Three hooks, all no-op unless that file exists:
 `@docs/HANDOFF.yaml` in `CLAUDE.md` loads the snapshot at session start (re-read
 after compaction not guaranteed); Codex gets the rule in `AGENTS.md` only.
 
+Headless `claude -p` runs get the same gate (observed on 2.1.329): a blocked
+stop buys one more turn, then the run ends whether or not that turn updated the
+handoff.
+
 Known gap: nothing fires right before compaction — a PreCompact hook cannot make
 the model write. The counter bounds staleness; lower `HANDOFF_EVERY` for very
 long sessions.
@@ -93,7 +97,7 @@ flowchart TD
     F --> G["Write the minimum<br/>reusing existing paths and commands"]
     G --> H["Validate entry points,<br/>links and imports"]
     H --> I["Leave docs/HANDOFF.yaml saying<br/>what was actually verified"]
-    I --> J["Hooks re-inject it after compaction<br/>and gate Stop until it is fresh"]
+    I --> J["Hooks re-inject it after compaction<br/>and block Stop once while it is stale"]
 ```
 
 ## Install

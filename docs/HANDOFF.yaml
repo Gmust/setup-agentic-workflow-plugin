@@ -1,36 +1,27 @@
-goal: setup 2.3.0 — ask about a ROADMAP.md for agents (user's milestones only) and link OpenSpec instead of copying it (user review feedback)
+goal: fix/claude-codex-currency — make Stop-gate, Codex install/hook and Codex activation claims match Claude Code 2.1.329 and current Codex docs
 done:
-  - v2.2.0 released (PR #3); dual-review 2.2.1 merged (PR #4)
-  - observed in headless runs — setup REVIEW.md scenarios, Codex activation (codex-cli 0.160.0, constructed fixture), dual-review incl. --fix, stale base, Mixed finding and nit (details in git log 23e3348, fd71db1)
-  - branch feat/roadmap-openspec — roadmap question in orchestrator + agent-entrypoints, Roadmap rule, OpenSpec in code map, ROADMAP.md skeleton in templates.md, 4 scenarios (Roadmap, No roadmap, Existing roadmap, OpenSpec), README rows, versions 2.3.0
-  - inject line `ls -d ROADMAP.md docs/ROADMAP.md openspec | grep . || echo none` run by hand in two scratch dirs: none / both listed
-  - headless claude -p (opus-5-5, --plugin-dir, setting-sources project,local), tasklog Node fixtures — plain -p cannot ask, defaults to no ROADMAP.md, invents none; ask-first prompt: roadmap question asked once in the batch (roadmap, noroadmap, openspec)
-  - Roadmap pass (3 milestones exact, order kept, one `now`, linked as plan below code); OpenSpec pass (config.yaml linked not restated, milestone 1 links add-csv-export); Existing roadmap pass (not rewritten, linked as plan, no question)
-  - No roadmap v1 fail (no file, but a "roadmap requested, none yet" entry in AGENTS.md source of truth); wording tightened; rerun pass — no file, no mention in AGENTS.md, report says so
-  - Roadmap repeat run (fresh session, same answers, fixture committed) — ROADMAP.md and roadmap lines in AGENTS.md byte-identical; it did change the gate (see limitations)
-  - removed stale skills/setup-agentic-workflow/{scripts,tests}/ copies (owner approved); nothing referenced them, CI and installs use shared/
-wip: null
+  - setup 2.3.0 merged (PR #5); earlier observations in git log (23e3348, fd71db1, 01d4f02)
+  - T1 headless Stop gate — changelog 2.1.304 entry is a fix for plugins spawning subagents past Stop, not for Stop-hook blocks; claude 2.1.329 -p, 3 fixtures in scratch — Stop returns decision:block, run continues one turn, 2nd Stop passes (stop_hook_active); told "edit only app.py" the agent leaves the handoff stale; README sentence + mermaid label fixed, evaluation row; no hook changed
+wip: T2 — Codex README claims (marketplace add from a local checkout, hooks wording)
 blocked: null
-next: run the setup Monorepo scenario on a real multi-package repository and record per-package results
+next: T2 codex plugin marketplace add with a throwaway CODEX_HOME, then T3 activation with and without trust
 decisions:
   - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
   - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
   - PreCompact not used — cannot make the model write; counter bounds staleness
   - dual-review is a separate plugin, recommended by setup, never installed by it
-  - REVIEW.md only when the team uses AI review; facts from the repo, never a stack checklist
-  - stale-base check compares baseRefOid with origin/<base> (GitHub moves baseRefOid on head push, not on base advance)
-  - roadmap holds only milestones the user names; asked once, never generated — generating would break "will not invent a spec"
-  - a spec framework in use (OpenSpec config.yaml context, specs/, changes/) is linked, never restated in AGENTS.md — two copies drift
-refs: [plugins/setup-agentic-workflow/shared/evaluation.md, plugins/setup-agentic-workflow/shared/templates.md, README.md#feedback-wanted]
+  - roadmap holds only milestones the user names; spec frameworks are linked, never restated
+  - Stop gate blocks once per turn by design; not worked around in headless runs
+refs: [plugins/setup-agentic-workflow/shared/evaluation.md, README.md#context-persistence, README.md#codex]
 checks:
   gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
-  last: pass (28 tests, hooks OK, validate_setup ok, claude plugin validate setup-agentic-workflow) 2026-10-25
+  last: pass (28 tests, hooks OK) 2026-11-20
 platforms: [macOS local, CI ubuntu/macos/windows]
 limitations:
   - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"
-  - Codex observed once on a constructed fixture; Codex reads skills from .agents/skills, not via the plugin
+  - Codex reads skills from .agents/skills; plugin hooks not wired or tested for Codex
   - install.ps1 never run (no pwsh on the dev machine)
   - hooks watch one HANDOFF_FILE; per-project handoffs in a monorepo are not followed
   - Monorepo scenario not yet run on a real multi-package repository
-  - repeat run is not byte-stable when run 1 leaves a known gate gap: run 1 authored `check` yet left `node --check a b` covering only a; run 2 added a step and `engines` (quality-gate, predates this branch)
   - headless -p cannot ask; the roadmap question was observed only with an ask-first prompt
+  - headless Stop gate observed on claude 2.1.329 only
