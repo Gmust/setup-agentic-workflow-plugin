@@ -22,8 +22,8 @@ The plugin exists in four places, and only one of them is editable here:
 | --- | --- | --- |
 | Source | `plugins/setup-agentic-workflow/` | yes — this is the only source of truth |
 | Account | uploaded ZIP on claude.ai | no — rebuild and re-upload |
-| Claude Code | `~/.claude/skills/setup-agentic-workflow/` | no — copy from source |
-| Codex | `~/.agents/skills/` and `~/.codex/skills/` | no — copy from source |
+| Claude Code | `~/.claude/plugins/cache/gmust-plugins/setup-agentic-workflow/` | no — reinstall from source |
+| Codex | `~/.codex/plugins/cache/gmust-plugins/setup-agentic-workflow/` (plugin), or `~/.agents/skills/` and `~/.codex/skills/` (copied) | no — reinstall or copy from source |
 
 `dual-review` is not part of these copies. Its own source is
 `plugins/dual-review/`, installed as a plugin or by its `install.sh` /

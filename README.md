@@ -122,7 +122,22 @@ Copying single skill folders into `~/.claude/skills/` is not supported any more:
 the skills reference `../../shared/` and `${CLAUDE_PLUGIN_ROOT}`, and the hooks
 live in `plugin.json`.
 
-### Codex
+### Codex — plugin
+
+```sh
+codex plugin marketplace add Gmust/setup-agentic-workflow-plugin
+codex plugin add setup-agentic-workflow@gmust-plugins
+```
+
+Codex reads this repository's `.claude-plugin/marketplace.json`; a local
+checkout path works in place of `Gmust/...`. Observed with codex-cli 0.160.0 and
+0.171.0 on 2026-11-20: the plugin is copied to `$CODEX_HOME/plugins/cache/`
+and a new session lists the four skills as `setup-agentic-workflow:<skill>`.
+`codex plugin list` also offers `dual-review`; it is Claude Code only.
+
+### Codex — copied skills
+
+Without the plugin system:
 
 ```sh
 git clone https://github.com/Gmust/setup-agentic-workflow-plugin
@@ -134,8 +149,11 @@ cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/shared ~/.age
 ```
 
 `shared/` must sit two levels up from each `SKILL.md` so `../../shared/` links
-resolve. `${CLAUDE_PLUGIN_ROOT}` lines are Claude Code substitutions and will
-not expand under Codex; the hooks and `dual-review` are Claude Code only.
+resolve; the plugin route keeps that layout. `${CLAUDE_PLUGIN_ROOT}` lines are
+Claude Code substitutions: nothing sets them for copied skills, and under the
+Codex plugin route they are untested. Codex has its own hook system, but this
+plugin's hooks are declared for Claude Code only and have not been wired up or
+tested for Codex; Codex gets the handoff rule from `AGENTS.md`.
 Codex has been observed activating the skill once (codex-cli 0.160.0, the four
 skills in a repository's `.agents/skills/`, a request that did not name the
 skill) — see [Feedback wanted](#feedback-wanted) for what is still open.
