@@ -142,14 +142,17 @@ and a new session lists the four skills as `setup-agentic-workflow:<skill>`.
 `codex plugin list` also offers `dual-review`; it is Claude Code only.
 
 Codex runs the same three hooks from the plugin's `hooks/hooks.json`, but only
-once they are trusted; until then `codex exec` skips them without a warning.
-Codex's hooks docs say to trust them in `/hooks` in interactive `codex`, and
-that a plugin update changing a bundled script needs a new review; that step is
-untested here. Observed only with `--dangerously-bypass-hook-trust` (codex-cli
-0.171.0, disposable fixture): the handoff was injected at session start,
-`apply_patch` edits were counted and shell reads were not, and Stop blocked
-once, then passed. The hook commands are POSIX `sh`; Codex on Windows is
-untested and the plugin sets no `commandWindows` override.
+once you trust them: open `/hooks` in interactive `codex` and trust the
+plugin's SessionStart, PostToolUse and Stop hooks. Until then `codex exec`
+skips them without a warning. Observed with codex-cli 0.171.0 on a disposable
+fixture after trusting them once: a plain `codex exec` injected the handoff at
+session start, counted the `apply_patch` edit and not the shell reads, and
+blocked Stop once, then let it pass. After a bundled script was changed, every
+hook of the plugin reported `Failed` until the script was restored. Codex's
+hooks docs say a plugin update that changes a script needs a new review;
+trusting again after such a change is untested here. The hook commands are
+POSIX `sh`; Codex on Windows is untested and the plugin sets no
+`commandWindows` override.
 
 ### Codex — copied skills
 
