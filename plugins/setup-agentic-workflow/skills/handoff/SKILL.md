@@ -46,8 +46,9 @@ if any: $ARGUMENTS
   newer than the handoff; they are personal and no-op without the file. Write
   the same hooks into the repository's `.claude/settings.json` only when the
   user asks for a team-wide setup without the plugin. Codex runs the plugin's
-  hooks once the user trusts them in `/hooks`; without the plugin, Codex gets
-  the rule only.
+  hooks only once they are trusted (`/hooks` in interactive `codex`; seen only
+  with `--dangerously-bypass-hook-trust`, the trust step itself is untested);
+  without the plugin, Codex gets the rule only.
 
 Completion fields for a setup handoff: outcome; files/contracts changed; checks
 and results; platforms actually tested; remaining limitations; next bounded task.

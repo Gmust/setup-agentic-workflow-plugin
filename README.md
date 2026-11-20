@@ -73,7 +73,9 @@ that file exists:
 | `handoff-stop.sh` | Stop | Refuses to end the turn while files changed this session are newer than the handoff, or `next` is empty, or the file exceeds 40 lines. Once per turn |
 
 `HANDOFF_FILE` overrides the path (repo-relative). Remove the Stop entry from
-`hooks/hooks.json` if the gate is too strict for your workflow. Without the
+the installed copy of `hooks/hooks.json` if the gate is too strict for your
+workflow; a reinstall restores it, and Codex treats the edited file as a changed
+hook that must be trusted again. Without the
 plugin, `@docs/HANDOFF.yaml` in `CLAUDE.md` loads the snapshot at session start
 (re-read after compaction not guaranteed); Codex gets the rule in `AGENTS.md`
 only.
@@ -138,6 +140,15 @@ checkout path works in place of `Gmust/...`. Observed with codex-cli 0.160.0 and
 and a new session lists the four skills as `setup-agentic-workflow:<skill>`.
 `codex plugin list` also offers `dual-review`; it is Claude Code only.
 
+Codex runs the same three hooks from the plugin's `hooks/hooks.json`, but only
+once they are trusted; until then `codex exec` skips them without a warning.
+Codex's hooks docs say to trust them in `/hooks` in interactive `codex`, and
+that a plugin update changing a bundled script needs a new review; that step is
+untested here. Observed only with `--dangerously-bypass-hook-trust` (codex-cli
+0.171.0, disposable fixture): the handoff was injected at session start,
+`apply_patch` edits were counted and shell reads were not, and Stop blocked
+once, then passed.
+
 ### Codex — copied skills
 
 Without the plugin system:
@@ -158,14 +169,8 @@ only. Codex reads the `` !`cmd` `` state-injection lines as literal text
 `${CLAUDE_PLUGIN_ROOT}` for copied skills; Codex sets it for plugin hook
 commands, and in skill bodies under the Codex plugin route it is untested.
 
-With the plugin route, Codex runs the same three hooks from `hooks/hooks.json`
-once you trust them: open `/hooks` in interactive `codex`, and again after an
-update changes a script. Until then `codex exec` skips them without a warning.
-Observed on codex-cli 0.171.0 with `--dangerously-bypass-hook-trust` in a
-disposable fixture: the handoff was injected at session start, `apply_patch`
-edits were counted and shell reads were not, and Stop blocked once, then passed.
-The `/hooks` trust step itself was not exercised. Codex gets the handoff rule
-from `AGENTS.md` unless the project is marked untrusted.
+Copied skills get no hooks. Codex gets the handoff rule from `AGENTS.md` unless
+the project is marked untrusted.
 Codex has been observed activating the skill on constructed fixtures with the
 four skills in the target repository's own `.agents/skills/` (not
 `~/.agents/skills/`, where the copy route puts them) and a request that did not

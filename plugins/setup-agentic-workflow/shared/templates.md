@@ -220,7 +220,7 @@ guaranteed, so it is weaker than the hooks below. Codex: put "read
 
 ## `.claude/settings.json` hooks (team-wide, only on request)
 
-Same behaviour as the `agentic-workflow` plugin, for contributors without it.
+Same behaviour as the `setup-agentic-workflow` plugin, for contributors without it.
 `hooks/*.sh` are the plugin's scripts copied into `.claude/hooks/`.
 
 ```json
