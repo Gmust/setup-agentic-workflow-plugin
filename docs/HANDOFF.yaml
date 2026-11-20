@@ -9,7 +9,7 @@ done:
 wip: null
 blocked: null
   - Codex hook trust — user trusted the 3 plugin hooks in /hooks (codex 0.171.0, throwaway CODEX_HOME); plain codex exec then ran them — SessionStart, apply_patch counted 1, Stop Blocked then Completed; after appending a line to the installed handoff-stop.sh all 3 reported Failed; restored script, all Completed again
-next: push fix/claude-codex-currency and open a PR to main once the user asks
+next: open a PR from fix/claude-codex-currency (pushed) to main once the user asks; CI must pass on ubuntu, macos and windows
 decisions:
   - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
   - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
