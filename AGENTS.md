@@ -53,7 +53,7 @@ Never write to a path outside this repository as part of a change here.
 | Orchestrator | `.../skills/setup-agentic-workflow/SKILL.md` | Inspect once, ask once, run the parts, validate | behavioral scenarios, run by hand |
 | Part skills | `.../skills/{agent-entrypoints,quality-gate,handoff}/SKILL.md` | One artifact each; standalone and idempotent | behavioral scenarios, run by hand |
 | Review plugin | [plugins/dual-review](plugins/dual-review/AGENTS.md) | Coordinator and read-only reviewer: consensus rounds, risk-based depth, optional fix and verify | its `evaluation.md`, run by hand |
-| Hooks | `.../hooks/*.sh` | Re-inject handoff on SessionStart; remind every N mutating calls; block Stop while tree newer than handoff or handoff fails lint | `hooks/test.sh` |
+| Hooks | `.../hooks/*.sh` | Re-inject handoff on SessionStart; remind every N mutating calls; block Stop once per turn while tree newer than handoff or handoff fails lint | `hooks/test.sh` |
 | Templates | `.../shared/templates.md` | Skeletons the skills fill in, incl. `HANDOFF.yaml` and the living-handoff rule | none automated |
 | Scenarios | `.../shared/evaluation.md` | How a change is judged | run by hand in disposable repositories |
 | Inventory helper | `.../shared/scripts/inspect_repo.py` | Read-only repository inventory | `shared/tests/test_helpers.py` |
@@ -70,6 +70,8 @@ plugin, so a per-plugin file for setup would only restate it.
 - Inspect before editing; preserve unrelated and untracked work.
 - Confirm before any destructive action.
 - State the expected evidence before implementing.
+- A CLI flag or behavior seen on only some versions is documented with the
+  version it needs, next to the flag; an older CLI may reject it.
 - A helper must stay read-only: it may not execute a command it discovers, read
   file contents it was not asked for, or follow a reference outside the target
   repository. A change that weakens this is a defect regardless of test results.
@@ -94,8 +96,11 @@ natural request, whether Codex loads it, and every scenario in
 `shared/evaluation.md` and `plugins/dual-review/evaluation.md`. Those are
 exercised by hand in disposable repositories — headless `claude -p` with only
 these plugins via `--plugin-dir` and `--setting-sources project,local`, and
-`codex exec --trust` with a throwaway `HOME`/`CODEX_HOME` and the skills in the
-fixture's `.agents/skills/` — and the result belongs in the handoff. Prove what
+`codex exec --trust` (codex-cli 0.169.0 or later; older versions reject the
+flag, so write the `[projects."<fixture>"] trust_level = "trusted"` entry it
+saves into `$CODEX_HOME/config.toml`) with a throwaway `HOME`/`CODEX_HOME` and
+the skills in the fixture's `.agents/skills/` — and the result belongs in the
+handoff. Prove what
 Codex loaded with a second `codex exec "List the instruction sources you
 loaded."` in the fixture, and confirm it in the newest
 `$CODEX_HOME/sessions/**/rollout-*.jsonl`, which holds an `# AGENTS.md

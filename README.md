@@ -97,7 +97,7 @@ flowchart TD
     F --> G["Write the minimum<br/>reusing existing paths and commands"]
     G --> H["Validate entry points,<br/>links and imports"]
     H --> I["Leave docs/HANDOFF.yaml saying<br/>what was actually verified"]
-    I --> J["Hooks re-inject it after compaction<br/>and block Stop once while it is stale"]
+    I --> J["Hooks re-inject it after compaction<br/>and block Stop once while it is stale or invalid"]
 ```
 
 ## Install
@@ -153,9 +153,11 @@ resolve; the plugin route keeps that layout. `${CLAUDE_PLUGIN_ROOT}` lines are
 Claude Code substitutions: nothing sets them for copied skills, and under the
 Codex plugin route they are untested. Codex has its own hook system, but this
 plugin's hooks are declared for Claude Code only and have not been wired up or
-tested for Codex; Codex gets the handoff rule from `AGENTS.md`.
+tested for Codex; Codex gets the handoff rule from `AGENTS.md` unless the
+project is marked untrusted.
 Codex has been observed activating the skill on constructed fixtures with the
-four skills in the repository's `.agents/skills/` and a request that did not
+four skills in the target repository's own `.agents/skills/` (not
+`~/.agents/skills/`, where the copy route puts them) and a request that did not
 name the skill: codex-cli 0.160.0, and 0.171.0 with and without saved project
 trust. A project marked untrusted still lists those skills but gets no
 `AGENTS.md`. See [Feedback wanted](#feedback-wanted) for what is still open.
@@ -201,7 +203,9 @@ This is the part that distinguishes it from "generate me an AGENTS.md":
 Two things are thin, and one report helps either of them:
 
 1. **Codex in daily use.** Activation has been observed only on constructed
-   fixtures. Install as above, trust the repository (`codex exec --trust`, or
+   fixtures, with the skills in the repository's own `.agents/skills/`. Install
+   through the Codex plugin route above, trust the repository (`codex exec
+   --trust` needs codex-cli 0.169.0 or later; older versions reject the flag, so
    accept the trust prompt in interactive Codex), run it in a repository with
    no agent files, phrase the request in your own words, and do not name the
    skill. Did it activate? Then run `codex exec "List the instruction sources
