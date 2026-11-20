@@ -94,8 +94,13 @@ natural request, whether Codex loads it, and every scenario in
 `shared/evaluation.md` and `plugins/dual-review/evaluation.md`. Those are
 exercised by hand in disposable repositories — headless `claude -p` with only
 these plugins via `--plugin-dir` and `--setting-sources project,local`, and
-`codex exec` with a throwaway `HOME`/`CODEX_HOME` and the skills in the
-fixture's `.agents/skills/` — and the result belongs in the handoff.
+`codex exec --trust` with a throwaway `HOME`/`CODEX_HOME` and the skills in the
+fixture's `.agents/skills/` — and the result belongs in the handoff. Prove what
+Codex loaded with a second `codex exec "List the instruction sources you
+loaded."` in the fixture, and confirm it in the newest
+`$CODEX_HOME/sessions/**/rollout-*.jsonl`, which holds an `# AGENTS.md
+instructions` message when the file was loaded (`--ask-for-approval` exists only
+on interactive `codex`, and `-c log_dir=` writes no text log under `exec`).
 
 ## Handoff
 
