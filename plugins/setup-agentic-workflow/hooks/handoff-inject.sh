@@ -2,7 +2,8 @@
 # SessionStart (any source): mark session start, put the handoff snapshot back into context.
 # No-op when the repo has no handoff — safe in any project.
 . "$(dirname "$0")/_common.sh"
-touch "$marker"
+# compaction continues the session: keep its start so the Stop gate still sees earlier edits
+[ "$(printf '%s' "$input" | jq -r '.source // empty')" = compact ] && [ -f "$marker" ] || touch "$marker"
 f="$cwd/$hf"
 [ -f "$f" ] || exit 0
 printf 'HANDOFF (%s, state that survives context resets). Continue from `next`; update after each verified step.\n---\n' "$hf"

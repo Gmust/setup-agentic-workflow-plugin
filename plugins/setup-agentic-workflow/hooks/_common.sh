@@ -1,8 +1,10 @@
 # shared by hooks; sourced, not executed
 input=$(cat)
-cwd=$(printf '%s' "$input" | jq -r '.cwd // empty'); cwd="${cwd:-.}"
-sid=$(printf '%s' "$input" | jq -r '.session_id // "default"')
 hf="${HANDOFF_FILE:-docs/HANDOFF.yaml}"
+cwd=$(printf '%s' "$input" | jq -r '.cwd // empty'); cwd="${cwd:-.}"
+# a session started (or cd'd) into a subdirectory still finds the handoff at the git root
+[ -f "$cwd/$hf" ] || cwd=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$cwd")
+sid=$(printf '%s' "$input" | jq -r '.session_id // "default"')
 marker="${TMPDIR:-/tmp}/handoff-session-$sid"
 counter="${TMPDIR:-/tmp}/handoff-counter-$sid"
 mtime() { stat -c '%Y' "$1" 2>/dev/null || stat -f '%m' "$1" 2>/dev/null; }  # GNU first: BSD-style -f succeeds on GNU with fs info

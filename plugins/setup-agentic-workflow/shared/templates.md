@@ -220,14 +220,13 @@ guaranteed, so it is weaker than the hooks below. Codex: put "read
 
 ## `.claude/settings.json` hooks (team-wide, only on request)
 
-Same behaviour as the `agentic-workflow` plugin, for contributors without it.
+Same behaviour as the `setup-agentic-workflow` plugin, for contributors without it.
 `hooks/*.sh` are the plugin's scripts copied into `.claude/hooks/`.
 
 ```json
 {
   "hooks": {
-    "SessionStart": [{ "matcher": "compact|resume",
-      "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-inject.sh" }] }],
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-inject.sh" }] }],
     "PostToolUse": [{ "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
       "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-counter.sh" }] }],
     "Stop": [{ "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-stop.sh" }] }]

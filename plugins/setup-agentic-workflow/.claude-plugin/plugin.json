@@ -1,7 +1,7 @@
 {
   "name": "setup-agentic-workflow",
   "displayName": "Setup Agentic Workflow",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Set up a repository so coding agents work safely in it — AGENTS.md/CLAUDE.md entry points, code map, boundaries and human-review paths, REVIEW.md and a PR template when the team uses AI review, an optional ROADMAP.md from your milestones, one shared check command, living docs/HANDOFF.yaml, optional CI — as four skills (orchestrator, agent-entrypoints, quality-gate, handoff) plus hooks that re-inject the handoff after compaction and keep it fresh. For Claude Code and Codex, single repos and monorepos. Not for implementing product features. Code review lives in the separate dual-review plugin.",
   "author": {
     "name": "Gmust",
@@ -20,42 +20,5 @@
     "hooks"
   ],
   "repository": "https://github.com/Gmust/setup-agentic-workflow-plugin",
-  "homepage": "https://github.com/Gmust/setup-agentic-workflow-plugin#readme",
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/handoff-inject.sh\"",
-            "timeout": 5,
-            "statusMessage": "Loading handoff..."
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/handoff-counter.sh\"",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/handoff-stop.sh\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  }
+  "homepage": "https://github.com/Gmust/setup-agentic-workflow-plugin#readme"
 }

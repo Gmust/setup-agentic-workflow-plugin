@@ -1,17 +1,15 @@
-goal: setup 2.3.0 — ask about a ROADMAP.md for agents (user's milestones only) and link OpenSpec instead of copying it (user review feedback)
+goal: fix/claude-codex-currency — make Stop-gate, Codex install/hook and Codex activation claims match Claude Code 2.1.329 and current Codex docs
 done:
-  - v2.2.0 released (PR #3); dual-review 2.2.1 merged (PR #4)
-  - observed in headless runs — setup REVIEW.md scenarios, Codex activation (codex-cli 0.160.0, constructed fixture), dual-review incl. --fix, stale base, Mixed finding and nit (details in git log 23e3348, fd71db1)
-  - branch feat/roadmap-openspec — roadmap question in orchestrator + agent-entrypoints, Roadmap rule, OpenSpec in code map, ROADMAP.md skeleton in templates.md, 4 scenarios (Roadmap, No roadmap, Existing roadmap, OpenSpec), README rows, versions 2.3.0
-  - inject line `ls -d ROADMAP.md docs/ROADMAP.md openspec | grep . || echo none` run by hand in two scratch dirs: none / both listed
-  - headless claude -p (opus-5-5, --plugin-dir, setting-sources project,local), tasklog Node fixtures — plain -p cannot ask, defaults to no ROADMAP.md, invents none; ask-first prompt: roadmap question asked once in the batch (roadmap, noroadmap, openspec)
-  - Roadmap pass (3 milestones exact, order kept, one `now`, linked as plan below code); OpenSpec pass (config.yaml linked not restated, milestone 1 links add-csv-export); Existing roadmap pass (not rewritten, linked as plan, no question)
-  - No roadmap v1 fail (no file, but a "roadmap requested, none yet" entry in AGENTS.md source of truth); wording tightened; rerun pass — no file, no mention in AGENTS.md, report says so
-  - Roadmap repeat run (fresh session, same answers, fixture committed) — ROADMAP.md and roadmap lines in AGENTS.md byte-identical; it did change the gate (see limitations)
-  - removed stale skills/setup-agentic-workflow/{scripts,tests}/ copies (owner approved); nothing referenced them, CI and installs use shared/
+  - T1 headless Stop gate — changelog 2.1.304 entry fixes plugins spawning subagents past Stop, not Stop-hook blocks; claude 2.1.329 -p, 3 scratch fixtures — Stop returns decision:block, run continues one turn, 2nd Stop passes (stop_hook_active); told to edit only app.py the agent leaves the handoff stale; no hook changed
+  - T2 Codex install — codex plugin marketplace add (local path, Gmust/... shorthand) reads .claude-plugin/marketplace.json on codex-cli 0.160.0 and 0.171.0; plugin add caches the 4 skills byte-identical; codex exec lists setup-agentic-workflow:<skill>, a control home lists none
+  - T3 Codex activation, codex-cli 0.171.0, skills in fixture .agents/skills — with --trust and with no trust entry the orchestrator SKILL.md was read, AGENTS.md, CLAUDE.md and a truthful handoff written, and the load-proof rollout holds the AGENTS.md instructions message; trust_level untrusted — skills listed, AGENTS.md not loaded
+  - review fixes — 0.160.0 rejects --trust; --trust via /tmp wrote the /private/tmp key; Codex 0.171.0 with the plugin installed ran none of its manifest hooks (default or --dangerously-bypass-hook-trust) while user hooks.json did; Codex reports shell calls as tool_name Bash with tool_input.command; Codex reads !cmd lines as literal text
+  - T4 hooks on Codex (2.4.0) — hooks moved verbatim from plugin.json to hooks/hooks.json, scripts unchanged; codex 0.171.0 with --dangerously-bypass-hook-trust on the real source — handoff injected as developer context, counter 1 (apply_patch counted, shell reads not), Stop Blocked then Completed (empty pass output accepted); without bypass exec skips them silently; claude 2.1.329 — each hook once, Stop block then pass; test.sh covers apply_patch payloads and one hooks file; review — counter reads only apply_patch file headers, a Bash read of the handoff no longer resets it, matcher names apply_patch; both clients re-run after
+  - review 2 of T4 — counter resets when the handoff's cksum changes (any writer), not on a path name; /dev/null redirects not counted, shell apply_patch counted; SessionStart compact keeps the session start; handoff found from a subdirectory via the git root; Stop pass prints {}; test.sh fails on the old scripts; claude 2.1.329 each hook once, Stop block then {}; codex 0.171.0 bypass Stop Blocked then Completed on {}, apply_patch edit counted 1
 wip: null
 blocked: null
-next: run the setup Monorepo scenario on a real multi-package repository and record per-package results
+  - Codex hook trust — user trusted the 3 plugin hooks in /hooks (codex 0.171.0, throwaway CODEX_HOME); plain codex exec then ran them — SessionStart, apply_patch counted 1, Stop Blocked then Completed; after appending a line to the installed handoff-stop.sh all 3 reported Failed; restored script, all Completed again
+next: open a PR from fix/claude-codex-currency (pushed) to main once the user asks; CI must pass on ubuntu, macos and windows
 decisions:
   - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
   - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
@@ -19,18 +17,23 @@ decisions:
   - dual-review is a separate plugin, recommended by setup, never installed by it
   - REVIEW.md only when the team uses AI review; facts from the repo, never a stack checklist
   - stale-base check compares baseRefOid with origin/<base> (GitHub moves baseRefOid on head push, not on base advance)
-  - roadmap holds only milestones the user names; asked once, never generated — generating would break "will not invent a spec"
-  - a spec framework in use (OpenSpec config.yaml context, specs/, changes/) is linked, never restated in AGENTS.md — two copies drift
-refs: [plugins/setup-agentic-workflow/shared/evaluation.md, plugins/setup-agentic-workflow/shared/templates.md, README.md#feedback-wanted]
+  - roadmap holds only milestones the user names; spec frameworks are linked, never restated
+  - Stop gate blocks once per turn by design; not worked around in headless runs
+  - counter reset keys on the handoff's content (cksum), not on what a command or patch names
+  - hooks live only in hooks/hooks.json — Claude Code and Codex both read it, Codex ignored the inline plugin.json hooks; test.sh fails on a second copy
+  - a CLI flag seen on only some versions is documented with its version (--trust needs codex-cli 0.169.0+)
+  - Codex load proof is a second codex exec plus the session rollout; --ask-for-approval is interactive-only on 0.171.0
+refs: [plugins/setup-agentic-workflow/shared/evaluation.md, README.md#context-persistence, README.md#codex--plugin, README.md#feedback-wanted]
 checks:
   gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
-  last: pass (28 tests, hooks OK, validate_setup ok, claude plugin validate setup-agentic-workflow) 2026-10-25
+  last: pass (28 tests, hooks OK) 2026-11-20
 platforms: [macOS local, CI ubuntu/macos/windows]
 limitations:
-  - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"
-  - Codex observed once on a constructed fixture; Codex reads skills from .agents/skills, not via the plugin
+  - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against Claude Code docs, not at runtime"
+  - Codex hook trust done by hand once on 0.171.0; re-trust after a script change, codex exec --json (shows no hook events), desktop app and ${CLAUDE_PLUGIN_ROOT} in skill bodies untested; Codex on Windows untested (POSIX sh, no commandWindows); codex 0.171.0 edited via python3 -c in the shell in 2 of 3 runs, which the Bash write heuristic does not count
+  - Codex activation run once per trust state on a constructed fixture, 0.171.0 only, skills from the fixture's .agents/skills, not the plugin route
+  - hand-written trust_level = "trusted" (fallback for codex older than 0.169.0) untested on 0.160.0
   - install.ps1 never run (no pwsh on the dev machine)
-  - hooks watch one HANDOFF_FILE; per-project handoffs in a monorepo are not followed
-  - Monorepo scenario not yet run on a real multi-package repository
-  - repeat run is not byte-stable when run 1 leaves a known gate gap: run 1 authored `check` yet left `node --check a b` covering only a; run 2 added a step and `engines` (quality-gate, predates this branch)
-  - headless -p cannot ask; the roadmap question was observed only with an ask-first prompt
+  - hooks watch one HANDOFF_FILE, per-project monorepo handoffs not followed; monorepo scenario not run on a real multi-package repository
+  - "repeat run is not byte-stable when run 1 leaves a known gate gap: run 1 authored `check` yet left `node --check a b` covering only a; run 2 added a step and `engines` (quality-gate, predates this branch)"
+  - headless -p cannot ask (roadmap question seen only with an ask-first prompt); headless Stop gate seen on claude 2.1.329 only

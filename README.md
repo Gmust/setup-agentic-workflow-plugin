@@ -62,18 +62,28 @@ fresh reviewers verify them. Nothing is committed. Also ships as a zip with
 ## Context persistence
 
 Long sessions lose context on compaction; `docs/HANDOFF.yaml` is what survives.
-Three hooks, all no-op unless that file exists:
+Three hooks in the plugin's `hooks/hooks.json`, read by Claude Code and by Codex
+(see [Codex — plugin](#codex--plugin) for trusting them there), all no-op unless
+that file exists:
 
 | Hook | When | Does |
 | --- | --- | --- |
 | `handoff-inject.sh` | SessionStart (startup, resume, compact, clear) | Puts the handoff plus `git log -5` / `git status --short` back into context; flags lint problems |
-| `handoff-counter.sh` | PostToolUse | Every `HANDOFF_EVERY` (default 15) mutating calls — Edit/Write, or Bash that looks like a write — reminds the agent to refresh, with current git facts |
+| `handoff-counter.sh` | PostToolUse | Every `HANDOFF_EVERY` (default 15) mutating calls — Edit/Write, Codex `apply_patch`, or Bash that looks like a write — reminds the agent to refresh, with current git facts; resets whenever the handoff's content changes |
 | `handoff-stop.sh` | Stop | Refuses to end the turn while files changed this session are newer than the handoff, or `next` is empty, or the file exceeds 40 lines. Once per turn |
 
-`HANDOFF_FILE` overrides the path (repo-relative). Remove the Stop entry from
-`plugin.json` if the gate is too strict for your workflow. Without the plugin,
-`@docs/HANDOFF.yaml` in `CLAUDE.md` loads the snapshot at session start (re-read
-after compaction not guaranteed); Codex gets the rule in `AGENTS.md` only.
+`HANDOFF_FILE` overrides the path, relative to the session's directory or, when
+it is not there, the git root. Remove the Stop entry from
+the installed copy of `hooks/hooks.json` if the gate is too strict for your
+workflow; a reinstall restores it, and Codex treats the edited file as a changed
+hook that must be trusted again. Without the
+plugin, `@docs/HANDOFF.yaml` in `CLAUDE.md` loads the snapshot at session start
+(re-read after compaction not guaranteed); Codex gets the rule in `AGENTS.md`
+only.
+
+Headless `claude -p` runs get the same gate (observed on 2.1.329): a blocked
+stop buys one more turn, then the run ends whether or not that turn updated the
+handoff.
 
 Known gap: nothing fires right before compaction — a PreCompact hook cannot make
 the model write. The counter bounds staleness; lower `HANDOFF_EVERY` for very
@@ -93,7 +103,7 @@ flowchart TD
     F --> G["Write the minimum<br/>reusing existing paths and commands"]
     G --> H["Validate entry points,<br/>links and imports"]
     H --> I["Leave docs/HANDOFF.yaml saying<br/>what was actually verified"]
-    I --> J["Hooks re-inject it after compaction<br/>and gate Stop until it is fresh"]
+    I --> J["Hooks re-inject it after compaction<br/>and block Stop once while it is stale or invalid"]
 ```
 
 ## Install
@@ -116,9 +126,37 @@ claude --plugin-dir setup-agentic-workflow-plugin/plugins/setup-agentic-workflow
 
 Copying single skill folders into `~/.claude/skills/` is not supported any more:
 the skills reference `../../shared/` and `${CLAUDE_PLUGIN_ROOT}`, and the hooks
-live in `plugin.json`.
+live in the plugin's `hooks/hooks.json`.
 
-### Codex
+### Codex — plugin
+
+```sh
+codex plugin marketplace add Gmust/setup-agentic-workflow-plugin
+codex plugin add setup-agentic-workflow@gmust-plugins
+```
+
+Codex reads this repository's `.claude-plugin/marketplace.json`; a local
+checkout path works in place of `Gmust/...`. Observed with codex-cli 0.160.0 and
+0.171.0 on 2026-11-20: the plugin is copied to `$CODEX_HOME/plugins/cache/`
+and a new session lists the four skills as `setup-agentic-workflow:<skill>`.
+`codex plugin list` also offers `dual-review`; it is Claude Code only.
+
+Codex runs the same three hooks from the plugin's `hooks/hooks.json`, but only
+once you trust them: open `/hooks` in interactive `codex` and trust the
+plugin's SessionStart, PostToolUse and Stop hooks. Until then `codex exec`
+skips them without a warning. Observed with codex-cli 0.171.0 on a disposable
+fixture after trusting them once: a plain `codex exec` injected the handoff at
+session start, counted the `apply_patch` edit and not the shell reads, and
+blocked Stop once, then let it pass. After a bundled script was changed, every
+hook of the plugin reported `Failed` until the script was restored. Codex's
+hooks docs say a plugin update that changes a script needs a new review;
+trusting again after such a change is untested here. The hook commands are
+POSIX `sh`; Codex on Windows is untested and the plugin sets no
+`commandWindows` override.
+
+### Codex — copied skills
+
+Without the plugin system:
 
 ```sh
 git clone https://github.com/Gmust/setup-agentic-workflow-plugin
@@ -130,11 +168,20 @@ cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/shared ~/.age
 ```
 
 `shared/` must sit two levels up from each `SKILL.md` so `../../shared/` links
-resolve. `${CLAUDE_PLUGIN_ROOT}` lines are Claude Code substitutions and will
-not expand under Codex; the hooks and `dual-review` are Claude Code only.
-Codex has been observed activating the skill once (codex-cli 0.160.0, the four
-skills in a repository's `.agents/skills/`, a request that did not name the
-skill) — see [Feedback wanted](#feedback-wanted) for what is still open.
+resolve; the plugin route keeps that layout. Two skill features are Claude Code
+only. Codex reads the `` !`cmd` `` state-injection lines as literal text
+(codex-cli 0.171.0; setup still completed in that run). Nothing sets
+`${CLAUDE_PLUGIN_ROOT}` for copied skills; Codex sets it for plugin hook
+commands, and in skill bodies under the Codex plugin route it is untested.
+
+Copied skills get no hooks. Codex gets the handoff rule from `AGENTS.md` unless
+the project is marked untrusted.
+Codex has been observed activating the skill on constructed fixtures with the
+four skills in the target repository's own `.agents/skills/` (not
+`~/.agents/skills/`, where the copy route puts them) and a request that did not
+name the skill: codex-cli 0.160.0, and 0.171.0 with and without saved project
+trust. A project marked untrusted still lists those skills but gets no
+`AGENTS.md`. See [Feedback wanted](#feedback-wanted) for what is still open.
 
 ## Use
 
@@ -176,10 +223,14 @@ This is the part that distinguishes it from "generate me an AGENTS.md":
 
 Two things are thin, and one report helps either of them:
 
-1. **Codex in daily use.** Activation was observed once, on a constructed
-   fixture with the skills in the repository's `.agents/skills/`. Install them
-   as above, run it in a repository with no agent files, phrase the request in
-   your own words, and do not name the skill. Did it activate?
+1. **Codex in daily use.** Activation has been observed only on constructed
+   fixtures, with the skills in the repository's own `.agents/skills/`. Install
+   through the Codex plugin route above, trust the repository (`codex exec
+   --trust` needs codex-cli 0.169.0 or later; older versions reject the flag, so
+   accept the trust prompt in interactive Codex), run it in a repository with
+   no agent files, phrase the request in your own words, and do not name the
+   skill. Did it activate? Then run `codex exec "List the instruction sources
+   you loaded."` there: does it list the generated `AGENTS.md`?
 2. **A real monorepo.** Several packages with genuinely different check
    commands. The monorepo branch has been exercised on a constructed fixture and
    on a two-crate workspace, not on a large one in daily use.
