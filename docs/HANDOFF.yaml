@@ -1,33 +1,37 @@
 goal: fix/claude-codex-currency — make Stop-gate, Codex install/hook and Codex activation claims match Claude Code 2.1.329 and current Codex docs
 done:
   - setup 2.3.0 merged (PR #5); earlier observations in git log (23e3348, fd71db1, 01d4f02)
-  - T1 headless Stop gate — changelog 2.1.304 entry is a fix for plugins spawning subagents past Stop, not for Stop-hook blocks; claude 2.1.329 -p, 3 fixtures in scratch — Stop returns decision:block, run continues one turn, 2nd Stop passes (stop_hook_active); told "edit only app.py" the agent leaves the handoff stale; README sentence + mermaid label fixed, evaluation row; no hook changed
-  - T2 Codex install — codex plugin marketplace add (local path and Gmust/... shorthand) reads .claude-plugin/marketplace.json on codex-cli 0.160.0 and 0.171.0 (scratch npm prefix), plugin add caches the 4 skills byte-identical, codex exec lists setup-agentic-workflow:<skill> (control home: none); README plugin route first, cp -R fallback, hooks line; AGENTS.md copies table fixed
-  - T3 Codex activation, codex-cli 0.171.0 (gpt-6.2-sol), skills in fixture .agents/skills — with --trust and with no trust entry both read the orchestrator SKILL.md, wrote AGENTS.md, CLAUDE.md and a truthful handoff, and the load-proof rollout holds "# AGENTS.md instructions"; trust_level = "untrusted" — skills still listed, AGENTS.md not loaded; AGENTS.md Checks, README, evaluation row updated; dual-review F1 + nits applied
+  - T1 headless Stop gate — changelog 2.1.304 entry fixes plugins spawning subagents past Stop, not Stop-hook blocks; claude 2.1.329 -p, 3 scratch fixtures — Stop returns decision:block, run continues one turn, 2nd Stop passes (stop_hook_active); told to edit only app.py the agent leaves the handoff stale; no hook changed
+  - T2 Codex install — codex plugin marketplace add (local path, Gmust/... shorthand) reads .claude-plugin/marketplace.json on codex-cli 0.160.0 and 0.171.0; plugin add caches the 4 skills byte-identical; codex exec lists setup-agentic-workflow:<skill>, a control home lists none
+  - T3 Codex activation, codex-cli 0.171.0, skills in fixture .agents/skills — with --trust and with no trust entry the orchestrator SKILL.md was read, AGENTS.md, CLAUDE.md and a truthful handoff written, and the load-proof rollout holds the AGENTS.md instructions message; trust_level untrusted — skills listed, AGENTS.md not loaded
+  - review fixes — 0.160.0 rejects --trust; --trust via /tmp wrote the /private/tmp key; Codex 0.171.0 with the plugin installed ran none of its manifest hooks (default or --dangerously-bypass-hook-trust) while user hooks.json did; Codex reports shell calls as tool_name Bash with tool_input.command; Codex reads !cmd lines as literal text
 wip: null
 blocked: null
-next: port handoff hooks to Codex (hooks/hooks.json, apply_patch matcher, Stop JSON pass path)
+next: port handoff hooks to Codex — first find how Codex CLI loads plugin hooks (manifest hooks did not run on 0.171.0, docs say desktop only) without registering them twice in Claude Code; apply_patch matcher; Stop JSON pass path
 decisions:
   - handoff is YAML snapshot not MD log — read cost dominates, ~120 tokens vs 1.5k
   - hooks live in plugin (personal), repo gets rule + file; settings.json hooks only on request
   - PreCompact not used — cannot make the model write; counter bounds staleness
   - dual-review is a separate plugin, recommended by setup, never installed by it
+  - REVIEW.md only when the team uses AI review; facts from the repo, never a stack checklist
+  - stale-base check compares baseRefOid with origin/<base> (GitHub moves baseRefOid on head push, not on base advance)
   - roadmap holds only milestones the user names; spec frameworks are linked, never restated
   - Stop gate blocks once per turn by design; not worked around in headless runs
-  - --trust needs codex-cli 0.169.0+ (0.160.0: "unexpected argument '--trust'"); docs name the version next to the flag (dual-review F1)
-  - Codex load proof = second codex exec + session rollout; --ask-for-approval is interactive-only, log_dir writes no text log under exec
+  - a CLI flag seen on only some versions is documented with its version (--trust needs codex-cli 0.169.0+)
+  - Codex load proof is a second codex exec plus the session rollout; --ask-for-approval is interactive-only on 0.171.0
 refs: [plugins/setup-agentic-workflow/shared/evaluation.md, README.md#context-persistence, README.md#codex--plugin, README.md#feedback-wanted]
 checks:
   gate: python3 -B -m unittest discover -s plugins/setup-agentic-workflow/shared/tests -v && sh plugins/setup-agentic-workflow/hooks/test.sh
   last: pass (28 tests, hooks OK) 2026-11-20
 platforms: [macOS local, CI ubuntu/macos/windows]
 limitations:
-  - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against docs, not at runtime"
-  - Codex plugin hooks not wired or tested (no hooks/hooks.json; hooks are in .claude-plugin/plugin.json); ${CLAUDE_PLUGIN_ROOT} in skill bodies untested under Codex
-  - Codex activation run once per trust state, constructed fixture, 0.171.0 only; skills via fixture .agents/skills, not via the plugin route; project .codex/config.toml under no trust untested
-  - hand-written trust_level = "trusted" (the documented fallback for codex < 0.169.0) not tested on 0.160.0
+  - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against Claude Code docs, not at runtime"
+  - Codex — plugin hooks not wired; ${CLAUDE_PLUGIN_ROOT} untested under the plugin route; desktop app untested
+  - Codex activation run once per trust state on a constructed fixture, 0.171.0 only, skills from the fixture's .agents/skills, not the plugin route
+  - hand-written trust_level = "trusted" (fallback for codex older than 0.169.0) untested on 0.160.0
   - install.ps1 never run (no pwsh on the dev machine)
   - hooks watch one HANDOFF_FILE; per-project handoffs in a monorepo are not followed
   - Monorepo scenario not yet run on a real multi-package repository
+  - "repeat run is not byte-stable when run 1 leaves a known gate gap: run 1 authored `check` yet left `node --check a b` covering only a; run 2 added a step and `engines` (quality-gate, predates this branch)"
   - headless -p cannot ask; the roadmap question was observed only with an ask-first prompt
   - headless Stop gate observed on claude 2.1.329 only

@@ -149,12 +149,16 @@ cp -R setup-agentic-workflow-plugin/plugins/setup-agentic-workflow/shared ~/.age
 ```
 
 `shared/` must sit two levels up from each `SKILL.md` so `../../shared/` links
-resolve; the plugin route keeps that layout. `${CLAUDE_PLUGIN_ROOT}` lines are
-Claude Code substitutions: nothing sets them for copied skills, and under the
-Codex plugin route they are untested. Codex has its own hook system, but this
-plugin's hooks are declared for Claude Code only and have not been wired up or
-tested for Codex; Codex gets the handoff rule from `AGENTS.md` unless the
-project is marked untrusted.
+resolve; the plugin route keeps that layout. Two skill features are Claude Code
+only. Codex reads the `` !`cmd` `` state-injection lines as literal text
+(codex-cli 0.171.0; setup still completed in that run). Nothing sets
+`${CLAUDE_PLUGIN_ROOT}` for copied skills, and under the Codex plugin route it
+is untested. Codex has its own hook system, but this plugin's hooks are not
+wired up for it: on codex-cli 0.171.0 the hooks declared in
+`.claude-plugin/plugin.json` did not run, even with
+`--dangerously-bypass-hook-trust`, while user-level hooks in the same run did.
+Codex gets the handoff rule from `AGENTS.md` unless the project is marked
+untrusted.
 Codex has been observed activating the skill on constructed fixtures with the
 four skills in the target repository's own `.agents/skills/` (not
 `~/.agents/skills/`, where the copy route puts them) and a request that did not

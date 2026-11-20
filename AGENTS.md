@@ -23,7 +23,7 @@ The plugin exists in four places, and only one of them is editable here:
 | Source | `plugins/setup-agentic-workflow/` | yes — this is the only source of truth |
 | Account | uploaded ZIP on claude.ai | no — rebuild and re-upload |
 | Claude Code | `~/.claude/plugins/cache/gmust-plugins/setup-agentic-workflow/` | no — reinstall from source |
-| Codex | `~/.codex/plugins/cache/gmust-plugins/setup-agentic-workflow/` (plugin), or `~/.agents/skills/` and `~/.codex/skills/` (copied) | no — reinstall or copy from source |
+| Codex | `~/.codex/plugins/cache/gmust-plugins/setup-agentic-workflow/` (plugin), or `~/.agents/skills/` and `~/.agents/shared/` (copied) | no — reinstall or copy from source |
 
 `dual-review` is not part of these copies. Its own source is
 `plugins/dual-review/`, installed as a plugin or by its `install.sh` /
@@ -53,7 +53,7 @@ Never write to a path outside this repository as part of a change here.
 | Orchestrator | `.../skills/setup-agentic-workflow/SKILL.md` | Inspect once, ask once, run the parts, validate | behavioral scenarios, run by hand |
 | Part skills | `.../skills/{agent-entrypoints,quality-gate,handoff}/SKILL.md` | One artifact each; standalone and idempotent | behavioral scenarios, run by hand |
 | Review plugin | [plugins/dual-review](plugins/dual-review/AGENTS.md) | Coordinator and read-only reviewer: consensus rounds, risk-based depth, optional fix and verify | its `evaluation.md`, run by hand |
-| Hooks | `.../hooks/*.sh` | Re-inject handoff on SessionStart; remind every N mutating calls; block Stop once per turn while tree newer than handoff or handoff fails lint | `hooks/test.sh` |
+| Hooks | `.../hooks/*.sh` | Re-inject handoff on SessionStart; remind every N mutating calls; block Stop once per turn while files changed this session are newer than the handoff, or it fails lint | `hooks/test.sh` |
 | Templates | `.../shared/templates.md` | Skeletons the skills fill in, incl. `HANDOFF.yaml` and the living-handoff rule | none automated |
 | Scenarios | `.../shared/evaluation.md` | How a change is judged | run by hand in disposable repositories |
 | Inventory helper | `.../shared/scripts/inspect_repo.py` | Read-only repository inventory | `shared/tests/test_helpers.py` |
@@ -96,16 +96,24 @@ natural request, whether Codex loads it, and every scenario in
 `shared/evaluation.md` and `plugins/dual-review/evaluation.md`. Those are
 exercised by hand in disposable repositories — headless `claude -p` with only
 these plugins via `--plugin-dir` and `--setting-sources project,local`, and
-`codex exec --trust` (codex-cli 0.169.0 or later; older versions reject the
-flag, so write the `[projects."<fixture>"] trust_level = "trusted"` entry it
-saves into `$CODEX_HOME/config.toml`) with a throwaway `HOME`/`CODEX_HOME` and
-the skills in the fixture's `.agents/skills/` — and the result belongs in the
-handoff. Prove what
-Codex loaded with a second `codex exec "List the instruction sources you
-loaded."` in the fixture, and confirm it in the newest
+`codex exec --trust --sandbox workspace-write` with a throwaway
+`HOME`/`CODEX_HOME` and the four skills plus `shared/` in the fixture's
+`.agents/` — and the result belongs in the handoff. `--trust` needs codex-cli
+0.169.0 or later. Older versions reject it; for them, add the entry it writes to
+`$CODEX_HOME/config.toml` by hand (untested on 0.160.0). The key is the
+fixture's absolute path with symlinks resolved, `/private/tmp/...` on macOS:
+
+```toml
+[projects."/private/tmp/fixture"]
+trust_level = "trusted"
+```
+
+Prove what Codex loaded with a second `codex exec "List the instruction sources
+you loaded."` in the fixture, and confirm it in the newest
 `$CODEX_HOME/sessions/**/rollout-*.jsonl`, which holds an `# AGENTS.md
-instructions` message when the file was loaded (`--ask-for-approval` exists only
-on interactive `codex`, and `-c log_dir=` writes no text log under `exec`).
+instructions` message when the file was loaded. On codex-cli 0.171.0
+`--ask-for-approval` exists only on interactive `codex`, and `-c log_dir=`
+writes no text log under `exec`.
 
 ## Handoff
 
