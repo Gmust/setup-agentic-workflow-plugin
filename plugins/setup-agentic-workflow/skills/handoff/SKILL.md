@@ -43,11 +43,12 @@ if any: $ARGUMENTS
   (`hooks/hooks.json`, read by Claude Code and Codex) that re-inject
   `docs/HANDOFF.yaml` after compaction, remind the agent every N mutating tool
   calls, and refuse once per turn to end while files changed this session are
-  newer than the handoff; they are personal and no-op without the file. Write
+  newer than the handoff or it fails lint (empty `next`, over 40 lines); they are personal and no-op without the file. Write
   the same hooks into the repository's `.claude/settings.json` only when the
   user asks for a team-wide setup without the plugin. Codex runs the plugin's
   hooks only once they are trusted (`/hooks` in interactive `codex`; seen only
-  with `--dangerously-bypass-hook-trust`, the trust step itself is untested);
+  with `--dangerously-bypass-hook-trust` on codex-cli 0.171.0, the trust step
+  itself is untested);
   without the plugin, Codex gets the rule only.
 
 Completion fields for a setup handoff: outcome; files/contracts changed; checks

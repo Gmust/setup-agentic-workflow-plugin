@@ -69,10 +69,11 @@ that file exists:
 | Hook | When | Does |
 | --- | --- | --- |
 | `handoff-inject.sh` | SessionStart (startup, resume, compact, clear) | Puts the handoff plus `git log -5` / `git status --short` back into context; flags lint problems |
-| `handoff-counter.sh` | PostToolUse | Every `HANDOFF_EVERY` (default 15) mutating calls — Edit/Write, Codex `apply_patch`, or Bash that looks like a write — reminds the agent to refresh, with current git facts |
+| `handoff-counter.sh` | PostToolUse | Every `HANDOFF_EVERY` (default 15) mutating calls — Edit/Write, Codex `apply_patch`, or Bash that looks like a write — reminds the agent to refresh, with current git facts; resets whenever the handoff's content changes |
 | `handoff-stop.sh` | Stop | Refuses to end the turn while files changed this session are newer than the handoff, or `next` is empty, or the file exceeds 40 lines. Once per turn |
 
-`HANDOFF_FILE` overrides the path (repo-relative). Remove the Stop entry from
+`HANDOFF_FILE` overrides the path, relative to the session's directory or, when
+it is not there, the git root. Remove the Stop entry from
 the installed copy of `hooks/hooks.json` if the gate is too strict for your
 workflow; a reinstall restores it, and Codex treats the edited file as a changed
 hook that must be trusted again. Without the
@@ -147,7 +148,8 @@ that a plugin update changing a bundled script needs a new review; that step is
 untested here. Observed only with `--dangerously-bypass-hook-trust` (codex-cli
 0.171.0, disposable fixture): the handoff was injected at session start,
 `apply_patch` edits were counted and shell reads were not, and Stop blocked
-once, then passed.
+once, then passed. The hook commands are POSIX `sh`; Codex on Windows is
+untested and the plugin sets no `commandWindows` override.
 
 ### Codex — copied skills
 

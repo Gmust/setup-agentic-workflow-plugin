@@ -6,6 +6,7 @@ done:
   - T3 Codex activation, codex-cli 0.171.0, skills in fixture .agents/skills — with --trust and with no trust entry the orchestrator SKILL.md was read, AGENTS.md, CLAUDE.md and a truthful handoff written, and the load-proof rollout holds the AGENTS.md instructions message; trust_level untrusted — skills listed, AGENTS.md not loaded
   - review fixes — 0.160.0 rejects --trust; --trust via /tmp wrote the /private/tmp key; Codex 0.171.0 with the plugin installed ran none of its manifest hooks (default or --dangerously-bypass-hook-trust) while user hooks.json did; Codex reports shell calls as tool_name Bash with tool_input.command; Codex reads !cmd lines as literal text
   - T4 hooks on Codex (2.4.0) — hooks moved verbatim from plugin.json to hooks/hooks.json, scripts unchanged; codex 0.171.0 with --dangerously-bypass-hook-trust on the real source — handoff injected as developer context, counter 1 (apply_patch counted, shell reads not), Stop Blocked then Completed (empty pass output accepted); without bypass exec skips them silently; claude 2.1.329 — each hook once, Stop block then pass; test.sh covers apply_patch payloads and one hooks file; review — counter reads only apply_patch file headers, a Bash read of the handoff no longer resets it, matcher names apply_patch; both clients re-run after
+  - review 2 of T4 — counter resets when the handoff's cksum changes (any writer), not on a path name; /dev/null redirects not counted, shell apply_patch counted; SessionStart compact keeps the session start; handoff found from a subdirectory via the git root; Stop pass prints {}; test.sh fails on the old scripts; claude 2.1.329 each hook once, Stop block then {}; codex 0.171.0 bypass Stop Blocked then Completed on {}, apply_patch edit counted 1
 wip: null
 blocked: null
 next: trust the plugin hooks once via /hooks in interactive codex 0.171.0 and confirm a plain codex exec then runs them without the bypass flag
@@ -18,6 +19,7 @@ decisions:
   - stale-base check compares baseRefOid with origin/<base> (GitHub moves baseRefOid on head push, not on base advance)
   - roadmap holds only milestones the user names; spec frameworks are linked, never restated
   - Stop gate blocks once per turn by design; not worked around in headless runs
+  - counter reset keys on the handoff's content (cksum), not on what a command or patch names
   - hooks live only in hooks/hooks.json — Claude Code and Codex both read it, Codex ignored the inline plugin.json hooks; test.sh fails on a second copy
   - a CLI flag seen on only some versions is documented with its version (--trust needs codex-cli 0.169.0+)
   - Codex load proof is a second codex exec plus the session rollout; --ask-for-approval is interactive-only on 0.171.0
@@ -28,12 +30,10 @@ checks:
 platforms: [macOS local, CI ubuntu/macos/windows]
 limitations:
   - "!cmd injection and ${CLAUDE_PLUGIN_ROOT} in skill bodies verified against Claude Code docs, not at runtime"
-  - Codex hooks seen only with --dangerously-bypass-hook-trust; /hooks trust flow, desktop app and ${CLAUDE_PLUGIN_ROOT} in skill bodies untested; Stop pass prints nothing although the doc asks for JSON
+  - Codex hooks seen only with --dangerously-bypass-hook-trust; /hooks trust flow, desktop app and ${CLAUDE_PLUGIN_ROOT} in skill bodies untested; Codex on Windows untested (POSIX sh, no commandWindows); codex 0.171.0 edited via python3 -c in the shell in 2 of 3 runs, which the Bash write heuristic does not count
   - Codex activation run once per trust state on a constructed fixture, 0.171.0 only, skills from the fixture's .agents/skills, not the plugin route
   - hand-written trust_level = "trusted" (fallback for codex older than 0.169.0) untested on 0.160.0
   - install.ps1 never run (no pwsh on the dev machine)
-  - hooks watch one HANDOFF_FILE; per-project handoffs in a monorepo are not followed
-  - Monorepo scenario not yet run on a real multi-package repository
+  - hooks watch one HANDOFF_FILE, per-project monorepo handoffs not followed; monorepo scenario not run on a real multi-package repository
   - "repeat run is not byte-stable when run 1 leaves a known gate gap: run 1 authored `check` yet left `node --check a b` covering only a; run 2 added a step and `engines` (quality-gate, predates this branch)"
-  - headless -p cannot ask; the roadmap question was observed only with an ask-first prompt
-  - headless Stop gate observed on claude 2.1.329 only
+  - headless -p cannot ask (roadmap question seen only with an ask-first prompt); headless Stop gate seen on claude 2.1.329 only

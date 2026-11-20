@@ -15,30 +15,42 @@ echo "$out" | grep -q 'goal: t' || fail inject
 echo "$out" | grep -q -- '--- git' || fail "git truth"
 echo "$out" | grep -q 'lint' && fail "false lint"
 [ -f "$TMPDIR/handoff-session-$S" ] || fail marker
-j '' | sh "$H/handoff-stop.sh" | grep -q block && fail "stop on clean tree"
+# a session started in a subdirectory still finds the handoff at the git root
+mkdir sub; printf '{"cwd":"%s/sub","session_id":"%s"}' "$T" "$S" | sh "$H/handoff-inject.sh" | grep -q 'goal: t' || fail "subdir cwd"
+# compaction continues the session: its start must not move
+touch -t 200001010000 "$TMPDIR/handoff-session-$S"; touch -t 200101010000 .git/ref
+j ',"source":"compact"' | sh "$H/handoff-inject.sh" >/dev/null
+[ -n "$(find "$TMPDIR/handoff-session-$S" -newer .git/ref)" ] && fail "compact moved session start"
+touch "$TMPDIR/handoff-session-$S"
+
+# Codex wants JSON on every exit 0 of Stop
+[ "$(j '' | sh "$H/handoff-stop.sh")" = '{}' ] || fail "stop on clean tree"
 sleep 1; echo x > "a b.py"
 j '' | sh "$H/handoff-stop.sh" | grep -q block || fail "stop should block (space path)"
-j ',"stop_hook_active":true' | sh "$H/handoff-stop.sh" | grep -q block && fail "stop loop guard"
+[ "$(j ',"stop_hook_active":true' | sh "$H/handoff-stop.sh")" = '{}' ] || fail "stop loop guard"
 sleep 1; touch docs/HANDOFF.yaml
 j '' | sh "$H/handoff-stop.sh" | grep -q block && fail "stop after refresh"
 
-j ',"tool_name":"Bash","tool_input":{"command":"cat a.py"}' | HANDOFF_EVERY=2 sh "$H/handoff-counter.sh" | grep -q additionalContext && fail "read counted"
+cnt() { cat "$TMPDIR/handoff-counter-$S" 2>/dev/null || echo 0; }
+b() { j ",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"$1\"}" | sh "$H/handoff-counter.sh"; }
+b 'cat a.py'; b 'ls src 2>/dev/null'
+[ "$(cnt)" = 0 ] || fail "read counted"
 for i in 1 2; do out=$(j ',"tool_name":"Edit","tool_input":{"file_path":"a.py"}' | HANDOFF_EVERY=2 sh "$H/handoff-counter.sh"); done
 echo "$out" | grep -q additionalContext || fail "counter reminder"
-j ',"tool_name":"Bash","tool_input":{"command":"cat > docs/HANDOFF.yaml <<EOF"}' | sh "$H/handoff-counter.sh"
-[ "$(cat "$TMPDIR/handoff-counter-$S")" = 0 ] || fail "bash reset"
+b 'apply_patch <<EOF'
+[ "$(cnt)" = 1 ] || fail "shell apply_patch counted"
+# any change to the handoff resets, whatever wrote it
+echo '# r' >> docs/HANDOFF.yaml; b 'perl -pi -e s/r/s/ docs/HANDOFF.yaml'
+[ "$(cnt)" = 0 ] || fail "handoff write reset"
 # Codex reports edits as apply_patch with the patch text in tool_input.command
 p() { printf ',"tool_name":"apply_patch","tool_input":{"command":"*** Begin Patch\\n*** Update File: %s\\n%s*** End Patch"}' "$1" "$2"; }
 j "$(p a.py)" | sh "$H/handoff-counter.sh"
-[ "$(cat "$TMPDIR/handoff-counter-$S")" = 1 ] || fail "apply_patch counted"
-j "$(p docs/HANDOFF.yaml)" | sh "$H/handoff-counter.sh"
-[ "$(cat "$TMPDIR/handoff-counter-$S")" = 0 ] || fail "apply_patch reset"
-# only the patch's file headers decide what it touched; a body that mentions the handoff still counts
+[ "$(cnt)" = 1 ] || fail "apply_patch counted"
+# a patch naming the handoff, or another package's handoff, did not change this one
 j "$(p AGENTS.md '@@\n+see docs/HANDOFF.yaml\n')" | sh "$H/handoff-counter.sh"
-[ "$(cat "$TMPDIR/handoff-counter-$S")" = 1 ] || fail "patch body mentioning handoff reset"
-# reading the handoff is not writing it
-j ',"tool_name":"Bash","tool_input":{"command":"cat docs/HANDOFF.yaml"}' | sh "$H/handoff-counter.sh"
-[ "$(cat "$TMPDIR/handoff-counter-$S")" = 1 ] || fail "handoff read reset"
+j "$(p packages/a/docs/HANDOFF.yaml)" | sh "$H/handoff-counter.sh"
+b 'sed -n 1,40p docs/HANDOFF.yaml 2>/dev/null'
+[ "$(cnt)" = 3 ] || fail "handoff name or read reset"
 
 # stale tree from before this session must not block
 sleep 1; touch "$TMPDIR/handoff-session-$S"; sleep 1; touch docs/HANDOFF.yaml
@@ -49,4 +61,4 @@ j '' | sh "$H/handoff-stop.sh" | grep -q block && fail "pre-session change block
 printf 'goal: t\nnext: null\n' > docs/HANDOFF.yaml
 j '' | sh "$H/handoff-stop.sh" | grep -q 'fails lint' || fail "lint block"
 printf 'goal: t\nnext: x\n' > docs/HANDOFF.yaml
-rm -rf "$T" "$TMPDIR/handoff-session-$S" "$TMPDIR/handoff-counter-$S"; echo OK
+rm -rf "$T" "$TMPDIR/handoff-session-$S" "$TMPDIR/handoff-counter-$S" "$TMPDIR/handoff-counter-$S.sum"; echo OK

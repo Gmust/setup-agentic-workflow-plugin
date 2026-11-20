@@ -226,8 +226,7 @@ Same behaviour as the `setup-agentic-workflow` plugin, for contributors without 
 ```json
 {
   "hooks": {
-    "SessionStart": [{ "matcher": "compact|resume",
-      "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-inject.sh" }] }],
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-inject.sh" }] }],
     "PostToolUse": [{ "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
       "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-counter.sh" }] }],
     "Stop": [{ "hooks": [{ "type": "command", "command": "sh .claude/hooks/handoff-stop.sh" }] }]
